@@ -56,7 +56,7 @@ namespace usart
         UInt16 st_dlen = 0;
         byte[] st_dat;
 
-        Dictionary<string, string> data = null;
+        bool putEnable = false;
         public void put(byte buff)
         {
             if (extraDecode)
@@ -224,9 +224,10 @@ namespace usart
                     case state.chksum:
                         decodeState = state.HEADER;
                         chksum = 0;
+                        extraDecode = false;
                         if ((chksum&0xFF)==buff)
                         {
-                            storeData();
+                            putEnable = true;
                         }
                         break;
                 }
@@ -244,12 +245,26 @@ namespace usart
                 
             }
         }
-        private void storeData()
+        public string put()
         {
-            data = new Dictionary<string, string>();
+            if(!putEnable)
+            {
+                return null;
+            }
+            string data=null;
             if(pkg_type==1)
             {
-                data.Add("type","ty");
+                
+                data=
+                return
+            }
+            else if(pkg_type==2)
+            {
+
+            }
+            else if(pkg_type==3)
+            {
+
             }
         }
     }
