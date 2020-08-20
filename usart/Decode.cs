@@ -249,7 +249,7 @@ namespace usart
             data = new Dictionary<string, string>();
             if(pkg_type==1)
             {
-                data.Add("type","type");
+                data.Add("type","ty");
             }
         }
     }
