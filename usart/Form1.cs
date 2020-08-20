@@ -53,16 +53,16 @@ namespace usart
                 try
                 {
                     serialPort1.Open();
-                    serialPort1.DiscardInbuffser();
-                    serialPort1.DiscardOutbuffser();
+                    serialPort1.DiscardInBuffer();
+                    serialPort1.DiscardOutBuffer();
                 }
                 catch
                 {
                     portOff(portName);
                     return false;
                 }
-                serialPort1.DiscardInbuffser();
-                serialPort1.DiscardOutbuffser();
+                serialPort1.DiscardInBuffer();
+                serialPort1.DiscardOutBuffer();
                 if (serialPort1.IsOpen)
                 {
                     comboPort.SelectedItem = portName;
