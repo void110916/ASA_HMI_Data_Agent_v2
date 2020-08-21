@@ -43,7 +43,7 @@ namespace usart
         float32 = 8,
         float64 = 9
     }
-    public class Decode
+    public class ASADecode
     {
         public bool extraDecode = false;
         state decodeState = state.HEADER;
@@ -68,8 +68,7 @@ namespace usart
         byte[] st_fs;
         UInt16 st_dlen = 0;
         byte[] st_dat;
-
-        bool putEnable = false;
+        public bool putEnable = false;
         public void put(byte buff)
         {
             if (extraDecode)
@@ -236,7 +235,6 @@ namespace usart
 
                     case state.chksum:
                         decodeState = state.HEADER;
-                        //chksum = 0;
                         extraDecode = false;
                         if ((chksum & 0xFF) == buff)
                         {
@@ -250,10 +248,8 @@ namespace usart
             {
                 if (buff == (byte)0xAC)
                 {
-
                     extraDecode = true;
                     count++;
-
                 }
 
             }
@@ -270,27 +266,29 @@ namespace usart
 
                 data[0] = ((HMI_type)ar_type).ToString();
                 data[1] = ar_num.ToString();
-                data[2] = Encoding.ASCII.GetString(ar_dat);
-                return data;
+                data[2] = dataTransfirm((HMI_type)ar_type, ar_dat);
+                
             }
             else if (pkg_type == 2)
             {
                 data[0] = ((HMI_type)mt_type).ToString();
                 data[1] = mt_numy.ToString() + 'x' + mt_numx.ToString();
                 data[2] = Encoding.ASCII.GetString(mt_dat);
-                return data;
+                
             }
             else if (pkg_type == 3)
             {
                 data[0] = Encoding.ASCII.GetString(st_fs);
                 data[1] = null;
                 data[2] = Encoding.ASCII.GetString(st_dat);
-                return data;
+                
             }
             else
             {
                 return null;
             }
+            clear();
+            return data;
         }
         private void clear()
         {
@@ -319,6 +317,54 @@ namespace usart
             st_dat = null;
 
             putEnable = false;
+        }
+        private string dataTransfirm(HMI_type type, byte[] data)
+        {
+            string opt = null;
+            switch (type)
+            {
+                case HMI_type.int8:
+                    sbyte[] d8 = new sbyte[data.Length];
+                    Buffer.BlockCopy(data, 0, d8, 0, data.Length);
+                    opt = string.Join(", ", d8);
+                    break;
+                case HMI_type.int16:
+                    Int16[] d16 = new Int16[data.Length / 2];
+                    Buffer.BlockCopy(data, 0, d16, 0, data.Length);
+                    opt = string.Join(", ", d16);
+                    break;
+                case HMI_type.int32:
+                    Int16[] d32 = new Int16[data.Length / 4];
+                    Buffer.BlockCopy(data, 0, d32, 0, data.Length);
+                    opt = string.Join(", ", d32);
+                    break;
+                case HMI_type.int64:
+                    Int16[] d64 = new Int16[data.Length / 8];
+                    Buffer.BlockCopy(data, 0, d64, 0, data.Length);
+                    opt = string.Join(", ", d64);
+                    break;
+                case HMI_type.uint8:
+                    Int16[] du8 = new Int16[data.Length];
+                    Buffer.BlockCopy(data, 0, du8, 0, data.Length);
+                    opt = string.Join(", ", du8);
+                    break;
+                case HMI_type.uint16:
+                    UInt16[] du16 = new ushort[data.Length / 2];
+                    Buffer.BlockCopy(data, 0, du16, 0, data.Length);
+                    opt = string.Join(", ", du16);
+                    break;
+                case HMI_type.uint32:
+                    Int16[] du32 = new Int16[data.Length / 2];
+                    Buffer.BlockCopy(data, 0, du32, 0, data.Length);
+                    opt = string.Join(", ", du32);
+                    break;
+                case HMI_type.uint64:
+                    UInt64[] du64 = new UInt64[data.Length / 8];
+                    Buffer.BlockCopy(data, 0, du64, 0, data.Length);
+                    opt = string.Join(", ", du64);
+                    break;
+            }
+            return opt;
         }
     }
 }

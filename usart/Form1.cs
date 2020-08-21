@@ -28,6 +28,7 @@ namespace usart
             }
             textBaud.Text = serialPort1.BaudRate.ToString();
             textBit.Text = serialPort1.DataBits.ToString();
+            RTerminal.SelectedIndex = 0;
         }
         private string[] portSearch()
         {
@@ -163,60 +164,85 @@ namespace usart
                 textWrite.Clear();
             }
         }
-
+        enum right_terminal_state
+        {
+            ASAHMI=0,
+            HEX=1
+        }
+        ASADecode decode = new ASADecode();
+       
         private void serialPort1_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             Thread.Sleep(5);  //（毫秒）等待一定時間，確保資料的完整性 int len        
             int len = serialPort1.BytesToRead;
             string receivedata = string.Empty;
+            
             byte[] buffs;
             if (len != 0)
             {
                 buffs = new byte[len];
                 serialPort1.Read(buffs, 0, len);
                 receivedata = Encoding.UTF8.GetString(buffs);
+                
                 if (Terminal.InvokeRequired)
                 {
-                    //如果需要invoke
-                    //step 1. 建立一個delegate方法
                     Action updateMethod = new Action(() => Terminal.AppendText(receivedata));
-
-                    //step 2. 交給元件Invoke去執行delegate方法
                     Terminal.Invoke(updateMethod);
                 }
                 else
                 {
-                    //如果不需要，那就直接更新元件吧
                     Terminal.AppendText(receivedata);
                 }
-
-                StringBuilder s = new StringBuilder();
-                foreach (byte i in buffs)
+                int rTerminalIndex = 0;
+                if (RTerminal.InvokeRequired)
                 {
-                    s.Append(i.ToString("X2")).Append(" ");
-                }
-                
-                if (textBinary.InvokeRequired)
-                {
-                    //如果需要invoke
-                    //step 1. 建立一個delegate方法
-                    Action updateMethod = new Action(() => textBinary.AppendText(s.ToString()));
-
-                    //step 2. 交給元件Invoke去執行delegate方法
-                    textBinary.Invoke(updateMethod);
+                    Action updateMethod = new Action(() => rTerminalIndex = RTerminal.SelectedIndex) ;
+                    Terminal.Invoke(updateMethod);
                 }
                 else
                 {
-                    //如果不需要，那就直接更新元件吧
-                    textBinary.AppendText(receivedata);
+                    rTerminalIndex = RTerminal.SelectedIndex;
+                }
+                if (rTerminalIndex == (int)right_terminal_state.ASAHMI)
+                {
+                    foreach (var buff in buffs)
+                    {
+                        decode.put(buff);
+                        if (decode.putEnable)
+                        {
+                            string[] data = decode.get();
+                            string text = string.Format("{0}_{1}:\r\n[ {2} ]\r\n\r\n", data[0], data[1], data[2]);
+                            if (textBinary.InvokeRequired)
+                            {
+                                Action updateMethod = new Action(() => textBinary.AppendText(text));
+                                textBinary.Invoke(updateMethod);
+                            }
+                            else
+                            {
+                                Terminal.AppendText(text);
+                            }
+                        }
+                    }
+                }
+                else if (rTerminalIndex== (int)right_terminal_state.HEX)
+                {
+                    StringBuilder s = new StringBuilder();
+                    foreach (byte i in buffs)
+                    {
+                        s.Append(i.ToString("X2")).Append(" ");
+                    }
+                    if (textBinary.InvokeRequired)
+                    {
+                        Action updateMethod = new Action(() => textBinary.AppendText(s.ToString()));
+                        textBinary.Invoke(updateMethod);
+                    }
+                    else
+                    {
+                        textBinary.AppendText(s.ToString());
+                    }
                 }
             }
-            
-
-            //Console.WriteLine(receivedata);
-
-
-            //serialPort1.DiscardInbuffser();
+           
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -225,6 +251,18 @@ namespace usart
             {
                 serialPort1.Dispose();
             }
+        }
+
+        private void tabSetting_Enter(object sender, EventArgs e)
+        {
+            //RTerminal.SelectedIndex = 0;
+        }
+
+        private void RTerminal_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+            //right_terminal_state = RTerminal.[RTerminal.SelectedIndex];
+            
         }
     }
 }
