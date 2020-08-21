@@ -275,11 +275,17 @@ namespace usart
             }
             else if (pkg_type == 2)
             {
-                return null;
+                data[0] = ((HMI_type)mt_type).ToString();
+                data[1] = mt_numy.ToString() + 'x' + mt_numx.ToString();
+                data[2] = Encoding.ASCII.GetString(mt_dat);
+                return data;
             }
             else if (pkg_type == 3)
             {
-                return null;
+                data[0] = Encoding.ASCII.GetString(st_fs);
+                data[1] = null;
+                data[2] = Encoding.ASCII.GetString(st_dat);
+                return data;
             }
             else
             {

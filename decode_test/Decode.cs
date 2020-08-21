@@ -7,30 +7,30 @@ using System.Threading.Tasks;
 
 namespace usart
 {
-    enum state:UInt16
+    enum state : UInt16
     {
-        HEADER=0,
-        pkg_len=1,
-        switch_type=2,
-        chksum=3,
+        HEADER = 0,
+        pkg_len = 1,
+        switch_type = 2,
+        chksum = 3,
 
-        ar_type=10,
-        ar_num=11,
-        ar_dat_len=12,
-        ar_dat=13,
+        ar_type = 10,
+        ar_num = 11,
+        ar_dat_len = 12,
+        ar_dat = 13,
 
-        mt_type=20,
-        mt_numy=21,
-        mt_numx=22,
-        mt_dat_len=23,
-        mt_dat=24,
+        mt_type = 20,
+        mt_numy = 21,
+        mt_numx = 22,
+        mt_dat_len = 23,
+        mt_dat = 24,
 
-        st_fs_len=30,
-        st_fs=31,
-        st_dat_len=32,
-        st_dat=33
+        st_fs_len = 30,
+        st_fs = 31,
+        st_dat_len = 32,
+        st_dat = 33
     }
-    enum HMI_type:UInt16
+    enum HMI_type : UInt16
     {
         int8 = 0,
         int16 = 1,
@@ -45,7 +45,7 @@ namespace usart
     }
     public class Decode
     {
-        public bool extraDecode=false;
+        public bool extraDecode = false;
         state decodeState = state.HEADER;
         UInt16 count = 0;
         UInt16 paclen = 0;
@@ -95,7 +95,7 @@ namespace usart
                         }
                         else
                         {
-                            paclen+=(UInt16)(buff&0xff);
+                            paclen += (UInt16)(buff & 0xff);
                             count = 0;
                             decodeState = state.switch_type;
                         }
@@ -175,7 +175,7 @@ namespace usart
                         else
                         {
                             mt_dlen += buff;
-                            count=0;
+                            count = 0;
                             mt_dat = new byte[mt_dlen];
                             decodeState = state.mt_dat;
                         }
@@ -185,7 +185,7 @@ namespace usart
 
                         mt_dat[count] = buff;
                         count++;
-                        if(count==mt_dlen)
+                        if (count == mt_dlen)
                         {
                             count = 0;
                             decodeState = state.chksum;
@@ -202,7 +202,7 @@ namespace usart
                         chksum += buff;
                         st_fs[count] = buff;
                         count++;
-                        if(count==st_fs_len)
+                        if (count == st_fs_len)
                         {
                             count = 0;
                             decodeState = state.st_dat_len;
@@ -227,7 +227,7 @@ namespace usart
                         chksum += buff;
                         st_dat[count] = buff;
                         count++;
-                        if(count==st_dlen)
+                        if (count == st_dlen)
                         {
                             count = 0;
                             decodeState = state.chksum;
@@ -238,48 +238,54 @@ namespace usart
                         decodeState = state.HEADER;
                         //chksum = 0;
                         extraDecode = false;
-                        if ((chksum&0xFF)==buff)
+                        if ((chksum & 0xFF) == buff)
                         {
                             putEnable = true;
                         }
                         break;
                 }
-                
+
             }
             else
             {
                 if (buff == (byte)0xAC)
                 {
-                    
+
                     extraDecode = true;
                     count++;
-                    
+
                 }
-                
+
             }
         }
         public string[] get()
         {
-            if(!putEnable)
+            if (!putEnable)
             {
                 return null;
             }
-            string[] data=new string[3];
-            if(pkg_type==1)
+            string[] data = new string[3];
+            if (pkg_type == 1)
             {
 
-                data[0] = ((HMI_type)ar_type).ToString() ;
+                data[0] = ((HMI_type)ar_type).ToString();
                 data[1] = ar_num.ToString();
                 data[2] = Encoding.ASCII.GetString(ar_dat);
                 return data;
             }
-            else if(pkg_type==2)
+            else if (pkg_type == 2)
             {
-                return null;
+                data[0] = ((HMI_type)mt_type).ToString();
+                data[1] = mt_numy.ToString() + 'x' + mt_numx.ToString();
+                data[2] = Encoding.ASCII.GetString(mt_dat);
+                return data;
             }
-            else if(pkg_type==3)
+            else if (pkg_type == 3)
             {
-                return null;
+                data[0] = Encoding.ASCII.GetString(st_fs);
+                data[1] = null;
+                data[2] = Encoding.ASCII.GetString(st_dat);
+                return data;
             }
             else
             {
