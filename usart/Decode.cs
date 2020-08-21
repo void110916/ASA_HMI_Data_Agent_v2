@@ -255,16 +255,20 @@ namespace usart
             if(pkg_type==1)
             {
                 
-                data=
-                return
+                //data=
+                return null;
             }
             else if(pkg_type==2)
             {
-
+                return null;
             }
             else if(pkg_type==3)
             {
-
+                return null;
+            }
+            else
+            {
+                return null;
             }
         }
     }
