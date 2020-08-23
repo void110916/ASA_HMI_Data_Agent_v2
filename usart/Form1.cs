@@ -262,8 +262,10 @@ namespace usart
         private void RTerminal_SelectedIndexChanged(object sender, EventArgs e)
         {
 
-            //right_terminal_state = RTerminal.[RTerminal.SelectedIndex];
+            groupBox1.Text = RTerminal.SelectedItem.ToString();
             
         }
+
+
     }
 }
