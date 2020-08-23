@@ -254,27 +254,34 @@ namespace usart
 
             }
         }
-        public string[] get()
+        public string get()
         {
             if (!putEnable)
             {
                 return null;
             }
             string[] data = new string[3];
+            string text=null;
             if (pkg_type == 1)
             {
 
                 data[0] = ((HMI_type)ar_type).ToString();
                 data[1] = ar_num.ToString();
                 data[2] = dataTransfirm((HMI_type)ar_type, ar_dat);
-                
+                text = string.Format("{0}_{1}:\r\n[ {2} ]\r\n\r\n", data[0], data[1], data[2]);
             }
             else if (pkg_type == 2)
             {
                 data[0] = ((HMI_type)mt_type).ToString();
                 data[1] = mt_numy.ToString() + 'x' + mt_numx.ToString();
-                data[2] = Encoding.ASCII.GetString(mt_dat);
                 
+                for(int i=0;i<mt_numy;i++)
+                {
+                    string mt = dataTransfirm((HMI_type)mt_type, mt_dat.Skip((mt_dat.Length/mt_numy)*i).Take(mt_dat.Length/mt_numy).ToArray());
+                    data[2] += "    [ " + mt + " ]\r\n";
+                }
+                text = string.Format("{0}_{1} :\r\n[\r\n{2}\r\n]\r\n\r\n", data[0], data[1], data[2]);
+
             }
             else if (pkg_type == 3)
             {
@@ -288,7 +295,7 @@ namespace usart
                 return null;
             }
             clear();
-            return data;
+            return text;
         }
         private void clear()
         {
@@ -296,7 +303,7 @@ namespace usart
             decodeState = state.HEADER;
             count = 0;
             paclen = 0;
-            type = 0;
+           
             chksum = 0;
             pkg_type = 0;
 

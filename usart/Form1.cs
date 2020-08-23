@@ -210,8 +210,8 @@ namespace usart
                         decode.put(buff);
                         if (decode.putEnable)
                         {
-                            string[] data = decode.get();
-                            string text = string.Format("{0}_{1}:\r\n[ {2} ]\r\n\r\n", data[0], data[1], data[2]);
+                            string text = decode.get();
+                            
                             if (textBinary.InvokeRequired)
                             {
                                 Action updateMethod = new Action(() => textBinary.AppendText(text));
