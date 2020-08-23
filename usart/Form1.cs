@@ -186,7 +186,7 @@ namespace usart
                 
                 if (Terminal.InvokeRequired)
                 {
-                    Action updateMethod = new Action(() => Terminal.AppendText(receivedata));
+                    Action updateMethod = new Action(() => Terminal.AppendText(receivedata.Replace('�', ' ')));
                     Terminal.Invoke(updateMethod);
                 }
                 else
@@ -242,6 +242,7 @@ namespace usart
                     }
                 }
             }
+            serialPort1.DiscardInBuffer();
            
         }
 

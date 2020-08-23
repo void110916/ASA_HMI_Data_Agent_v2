@@ -138,7 +138,7 @@
             // 
             // textBinary
             // 
-            this.textBinary.Font = new System.Drawing.Font("微軟正黑體", 9F);
+            this.textBinary.Font = new System.Drawing.Font("微軟正黑體", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
             this.textBinary.Location = new System.Drawing.Point(565, 57);
             this.textBinary.Margin = new System.Windows.Forms.Padding(4);
             this.textBinary.Multiline = true;

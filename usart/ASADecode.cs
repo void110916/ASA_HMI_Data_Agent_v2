@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace usart
 {
@@ -67,7 +68,7 @@ namespace usart
         UInt16 st_fs_len = 0;
         byte[] st_fs;
         UInt16 st_dlen = 0;
-        byte[] st_dat;
+        List<byte> st_dat;
         public bool putEnable = false;
         public void put(byte buff)
         {
@@ -218,13 +219,13 @@ namespace usart
                         {
                             count = 0;
                             st_dlen += buff;
-                            st_dat = new byte[st_dlen];
+                            st_dat = new List<byte>(st_dlen);
                             decodeState = state.st_dat;
                         }
                         break;
                     case state.st_dat:
                         chksum += buff;
-                        st_dat[count] = buff;
+                        st_dat.Add(buff);
                         count++;
                         if (count == st_dlen)
                         {
@@ -248,6 +249,7 @@ namespace usart
             {
                 if (buff == (byte)0xAC)
                 {
+                    clear();
                     extraDecode = true;
                     count++;
                 }
@@ -287,7 +289,75 @@ namespace usart
             {
                 data[0] = Encoding.ASCII.GetString(st_fs);
                 data[1] = null;
-                data[2] = Encoding.ASCII.GetString(st_dat);
+                text = data[0] + " :\r\n";
+                foreach (var tx in data[0].Split(','))
+                {
+                    
+                    string[] info = tx.Split('_');
+                    switch(info[0])
+                    {
+                        case "ui8":
+                           var dat= st_dat.GetRange(0,int.Parse(info[1])).ToArray();
+                            string st = dataTransfirm(HMI_type.uint8, dat);
+                            text +="    "+ tx + " :\r\n\t" + st + "\r\n";
+                            st_dat.RemoveRange(0, int.Parse(info[1]));
+                            break;
+                        case "ui16":
+                            dat = st_dat.GetRange(0, int.Parse(info[1])*2).ToArray();
+                            st = dataTransfirm(HMI_type.uint16, dat);
+                            text += "    " + tx + " :\r\n\t" + st + "\r\n";
+                            st_dat.RemoveRange(0, int.Parse(info[1])*2);
+                            break;
+                        case "ui32":
+                            dat = st_dat.GetRange(0, int.Parse(info[1])*4).ToArray();
+                            st = dataTransfirm(HMI_type.uint32, dat);
+                            text += "    " + tx + " :\r\n\t" + st + "\r\n";
+                            st_dat.RemoveRange(0, int.Parse(info[1])*4);
+                            break;
+                        case "ui64":
+                            dat = st_dat.GetRange(0, int.Parse(info[1])*8).ToArray();
+                            st = dataTransfirm(HMI_type.uint64, dat);
+                            text += "    " + tx + " :\r\n\t" + st + "\r\n";
+                            st_dat.RemoveRange(0, int.Parse(info[1])*8);
+                            break;
+                        case "i8":
+                            dat = st_dat.GetRange(0, int.Parse(info[1])).ToArray();
+                            st = dataTransfirm(HMI_type.int8, dat);
+                            text += "    " + tx + " :\r\n\t" + st + "\r\n";
+                            st_dat.RemoveRange(0, int.Parse(info[1]));
+                            break;
+                        case "i16":
+                            dat = st_dat.GetRange(0, int.Parse(info[1])*2).ToArray();
+                            st = dataTransfirm(HMI_type.int16, dat);
+                            text += "    " + tx + " :\r\n\t" + st + "\r\n";
+                            st_dat.RemoveRange(0, int.Parse(info[1])*2);
+                            break;
+                        case "i32":
+                            dat = st_dat.GetRange(0, int.Parse(info[1])*4).ToArray();
+                            st = dataTransfirm(HMI_type.int32, dat);
+                            text += "    " + tx + " :\r\n\t" + st + "\r\n";
+                            st_dat.RemoveRange(0, int.Parse(info[1])*4);
+                            break;
+                        case "i64":
+                            dat = st_dat.GetRange(0, int.Parse(info[1])*8).ToArray();
+                            st = dataTransfirm(HMI_type.int64, dat);
+                            text += "    " + tx + " :\r\n\t" + st + "\r\n";
+                            st_dat.RemoveRange(0, int.Parse(info[1])*8);
+                            break;
+                        case "f32":
+                            dat = st_dat.GetRange(0, int.Parse(info[1])).ToArray();
+                            st = dataTransfirm(HMI_type.float32, dat);
+                            text += "    " + tx + " :\r\n\t" + st + "\r\n";
+                            st_dat.RemoveRange(0, int.Parse(info[1]));
+                            break;
+                        case "f64":
+                            dat = st_dat.GetRange(0, int.Parse(info[1])).ToArray();
+                            st = dataTransfirm(HMI_type.float64, dat);
+                            text += "    " + tx + " :\r\n\t" + st + "\r\n";
+                            st_dat.RemoveRange(0, int.Parse(info[1]));
+                            break;
+                    }
+                }
                 
             }
             else
