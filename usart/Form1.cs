@@ -170,7 +170,7 @@ namespace usart
             HEX=1
         }
         ASADecode decode = new ASADecode();
-       
+        ASAEncode encode = new ASAEncode();
         private void serialPort1_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             Thread.Sleep(5);  //（毫秒）等待一定時間，確保資料的完整性 int len        
@@ -246,6 +246,11 @@ namespace usart
            
         }
 
+        private void pacSend_Click(object sender, EventArgs e)
+        {
+
+        }
+
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             if(serialPort1.IsOpen)
@@ -266,6 +271,6 @@ namespace usart
             
         }
 
-
+        
     }
 }

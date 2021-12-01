@@ -5,7 +5,9 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
-
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.IO;
 namespace usart
 {
     enum state : UInt16
@@ -43,6 +45,12 @@ namespace usart
         uint64 = 7,
         float32 = 8,
         float64 = 9
+    }
+    enum PAC_type : UInt16
+    {
+        ar = 1,
+        mt = 2,
+        st = 3
     }
     public class ASADecode
     {
@@ -263,7 +271,7 @@ namespace usart
                 return null;
             }
             string[] data = new string[3];
-            string text=null;
+            string text = null;
             if (pkg_type == 1)
             {
 
@@ -276,10 +284,10 @@ namespace usart
             {
                 data[0] = ((HMI_type)mt_type).ToString();
                 data[1] = mt_numy.ToString() + 'x' + mt_numx.ToString();
-                
-                for(int i=0;i<mt_numy;i++)
+
+                for (int i = 0; i < mt_numy; i++)
                 {
-                    string mt = dataTransfirm((HMI_type)mt_type, mt_dat.Skip((mt_dat.Length/mt_numy)*i).Take(mt_dat.Length/mt_numy).ToArray());
+                    string mt = dataTransfirm((HMI_type)mt_type, mt_dat.Skip((mt_dat.Length / mt_numy) * i).Take(mt_dat.Length / mt_numy).ToArray());
                     data[2] += "    [ " + mt + " ]\r\n";
                 }
                 text = string.Format("{0}_{1} :\r\n[\r\n{2}\r\n]\r\n\r\n", data[0], data[1], data[2]);
@@ -292,33 +300,33 @@ namespace usart
                 text = data[0] + " :\r\n";
                 foreach (var tx in data[0].Split(','))
                 {
-                    
+
                     string[] info = tx.Split('_');
-                    switch(info[0])
+                    switch (info[0])
                     {
                         case "ui8":
-                           var dat= st_dat.GetRange(0,int.Parse(info[1])).ToArray();
+                            var dat = st_dat.GetRange(0, int.Parse(info[1])).ToArray();
                             string st = dataTransfirm(HMI_type.uint8, dat);
-                            text +="    "+ tx + " :\r\n\t" + st + "\r\n";
+                            text += "    " + tx + " :\r\n\t" + st + "\r\n";
                             st_dat.RemoveRange(0, int.Parse(info[1]));
                             break;
                         case "ui16":
-                            dat = st_dat.GetRange(0, int.Parse(info[1])*2).ToArray();
+                            dat = st_dat.GetRange(0, int.Parse(info[1]) * 2).ToArray();
                             st = dataTransfirm(HMI_type.uint16, dat);
                             text += "    " + tx + " :\r\n\t" + st + "\r\n";
-                            st_dat.RemoveRange(0, int.Parse(info[1])*2);
+                            st_dat.RemoveRange(0, int.Parse(info[1]) * 2);
                             break;
                         case "ui32":
-                            dat = st_dat.GetRange(0, int.Parse(info[1])*4).ToArray();
+                            dat = st_dat.GetRange(0, int.Parse(info[1]) * 4).ToArray();
                             st = dataTransfirm(HMI_type.uint32, dat);
                             text += "    " + tx + " :\r\n\t" + st + "\r\n";
-                            st_dat.RemoveRange(0, int.Parse(info[1])*4);
+                            st_dat.RemoveRange(0, int.Parse(info[1]) * 4);
                             break;
                         case "ui64":
-                            dat = st_dat.GetRange(0, int.Parse(info[1])*8).ToArray();
+                            dat = st_dat.GetRange(0, int.Parse(info[1]) * 8).ToArray();
                             st = dataTransfirm(HMI_type.uint64, dat);
                             text += "    " + tx + " :\r\n\t" + st + "\r\n";
-                            st_dat.RemoveRange(0, int.Parse(info[1])*8);
+                            st_dat.RemoveRange(0, int.Parse(info[1]) * 8);
                             break;
                         case "i8":
                             dat = st_dat.GetRange(0, int.Parse(info[1])).ToArray();
@@ -327,22 +335,22 @@ namespace usart
                             st_dat.RemoveRange(0, int.Parse(info[1]));
                             break;
                         case "i16":
-                            dat = st_dat.GetRange(0, int.Parse(info[1])*2).ToArray();
+                            dat = st_dat.GetRange(0, int.Parse(info[1]) * 2).ToArray();
                             st = dataTransfirm(HMI_type.int16, dat);
                             text += "    " + tx + " :\r\n\t" + st + "\r\n";
-                            st_dat.RemoveRange(0, int.Parse(info[1])*2);
+                            st_dat.RemoveRange(0, int.Parse(info[1]) * 2);
                             break;
                         case "i32":
-                            dat = st_dat.GetRange(0, int.Parse(info[1])*4).ToArray();
+                            dat = st_dat.GetRange(0, int.Parse(info[1]) * 4).ToArray();
                             st = dataTransfirm(HMI_type.int32, dat);
                             text += "    " + tx + " :\r\n\t" + st + "\r\n";
-                            st_dat.RemoveRange(0, int.Parse(info[1])*4);
+                            st_dat.RemoveRange(0, int.Parse(info[1]) * 4);
                             break;
                         case "i64":
-                            dat = st_dat.GetRange(0, int.Parse(info[1])*8).ToArray();
+                            dat = st_dat.GetRange(0, int.Parse(info[1]) * 8).ToArray();
                             st = dataTransfirm(HMI_type.int64, dat);
                             text += "    " + tx + " :\r\n\t" + st + "\r\n";
-                            st_dat.RemoveRange(0, int.Parse(info[1])*8);
+                            st_dat.RemoveRange(0, int.Parse(info[1]) * 8);
                             break;
                         case "f32":
                             dat = st_dat.GetRange(0, int.Parse(info[1])).ToArray();
@@ -358,7 +366,7 @@ namespace usart
                             break;
                     }
                 }
-                
+
             }
             else
             {
@@ -373,7 +381,7 @@ namespace usart
             decodeState = state.HEADER;
             count = 0;
             paclen = 0;
-           
+
             chksum = 0;
             pkg_type = 0;
 
@@ -444,4 +452,290 @@ namespace usart
             return opt;
         }
     }
+    public class ASAEncode
+    {
+        private readonly byte[] _HEADER = { 0xac, 0xac, 0xac };
+        byte? getTypeNum(string typeStr)
+        {
+            switch (typeStr)
+            {
+                case "i8":
+                    return 0;
+                case "i16":
+                    return 1;
+                case "i32":
+                    return 2;
+                case "i64":
+                    return 3;
+                case "ui8":
+                    return 4;
+                case "ui16":
+                    return 5;
+                case "ui32":
+                    return 6;
+                case "ui64":
+                    return 7;
+                case "f32":
+                    return 8;
+                case "f64":
+                    return 9;
+                case "s":
+                    return 15;
+                default:
+                    return null;
+            }
+        }
+
+        byte[] encodeAr2Pac(sbyte[] data)
+        {
+
+            List<byte> pac = new List<byte>(_HEADER);
+            byte pactype = (byte)PAC_type.ar;
+            byte dtype = (byte)HMI_type.int8;
+            UInt16 len = (UInt16)(data.Length & UInt16.MaxValue);
+            List<byte> payload = new List<byte>();
+            payload.Add(pactype);
+            payload.Add(dtype);
+            payload.Add((byte)data.Length);
+            payload.AddRange(BitConverter.GetBytes(len).Reverse());
+            foreach (byte d in data)
+                payload.Add(d);
+            pac.AddRange(BitConverter.GetBytes((UInt16)payload.Count).Reverse());
+            pac.AddRange(payload);
+            pac.Add((byte)(payload.Select(x => (int)x).Sum() & 0xff));
+
+            return pac.ToArray();
+        }
+        byte[] encodeAr2Pac(byte[] data)
+        {
+            List<byte> pac = new List<byte>(_HEADER);
+            byte pactype = (byte)PAC_type.ar;
+            byte dtype = (byte)HMI_type.uint8;
+            UInt16 len = (UInt16)(data.Length & UInt16.MaxValue);
+            List<byte> payload = new List<byte>();
+            payload.Add(pactype);
+            payload.Add(dtype);
+            payload.Add((byte)data.Length);
+            payload.AddRange(BitConverter.GetBytes(len).Reverse());
+            payload.AddRange(data);
+            pac.AddRange(BitConverter.GetBytes((UInt16)payload.Count).Reverse());
+            pac.AddRange(payload);
+            pac.Add((byte)(payload.Select(x => (int)x).Sum() & 0xff));
+
+            return pac.ToArray();
+        }
+
+        byte[] encodeAr2Pac(Int16[] data)
+        {
+            List<byte> pac = new List<byte>(_HEADER);
+            byte pactype = (byte)PAC_type.ar;
+            byte dtype = (byte)HMI_type.uint8;
+            UInt16 len = (UInt16)(data.Length & UInt16.MaxValue);
+            List<byte> payload = new List<byte>();
+            payload.Add(pactype);
+            payload.Add(dtype);
+            payload.Add((byte)data.Length);
+            payload.AddRange(BitConverter.GetBytes(len).Reverse());
+            foreach (Int16 d in data)
+                payload.AddRange(BitConverter.GetBytes(d));
+            pac.AddRange(BitConverter.GetBytes((UInt16)payload.Count).Reverse());
+            pac.AddRange(payload);
+            pac.Add((byte)(payload.Select(x => (int)x).Sum() & 0xff));
+
+            return pac.ToArray();
+        }
+
+        byte[] encodeAr2Pac(UInt16[] data)
+        {
+            List<byte> pac = new List<byte>(_HEADER);
+            byte pactype = (byte)PAC_type.ar;
+            byte dtype = (byte)HMI_type.uint16;
+            UInt16 len = (UInt16)(data.Length & UInt16.MaxValue);
+            List<byte> payload = new List<byte>();
+            payload.Add(pactype);
+            payload.Add(dtype);
+            payload.Add((byte)data.Length);
+            payload.AddRange(BitConverter.GetBytes(len).Reverse());
+            foreach (Int16 d in data)
+                payload.AddRange(BitConverter.GetBytes(d));
+            pac.AddRange(BitConverter.GetBytes((UInt16)payload.Count).Reverse());
+            pac.AddRange(payload);
+            pac.Add((byte)(payload.Select(x => (int)x).Sum() & 0xff));
+
+            return pac.ToArray();
+        }
+        byte[] encodeAr2Pac(Int32[] data)
+        {
+            List<byte> pac = new List<byte>(_HEADER);
+            byte pactype = (byte)PAC_type.ar;
+            byte dtype = (byte)HMI_type.int32;
+            UInt16 len = (UInt16)(data.Length & UInt16.MaxValue);
+            List<byte> payload = new List<byte>();
+            payload.Add(pactype);
+            payload.Add(dtype);
+            payload.Add((byte)data.Length);
+            payload.AddRange(BitConverter.GetBytes(len).Reverse());
+            foreach (Int16 d in data)
+                payload.AddRange(BitConverter.GetBytes(d));
+            pac.AddRange(BitConverter.GetBytes((UInt16)payload.Count).Reverse());
+            pac.AddRange(payload);
+            pac.Add((byte)(payload.Select(x => (int)x).Sum() & 0xff));
+
+            return pac.ToArray();
+        }
+        byte[] encodeAr2Pac(UInt32[] data)
+        {
+            List<byte> pac = new List<byte>(_HEADER);
+            byte pactype = (byte)PAC_type.ar;
+            byte dtype = (byte)HMI_type.uint32;
+            UInt16 len = (UInt16)(data.Length & UInt16.MaxValue);
+            List<byte> payload = new List<byte>();
+            payload.Add(pactype);
+            payload.Add(dtype);
+            payload.Add((byte)data.Length);
+            payload.AddRange(BitConverter.GetBytes(len).Reverse());
+            foreach (Int16 d in data)
+                payload.AddRange(BitConverter.GetBytes(d));
+            pac.AddRange(BitConverter.GetBytes((UInt16)payload.Count).Reverse());
+            pac.AddRange(payload);
+            pac.Add((byte)(payload.Select(x => (int)x).Sum() & 0xff));
+
+            return pac.ToArray();
+        }
+        byte[] encodeAr2Pac(Int64[] data)
+        {
+            List<byte> pac = new List<byte>(_HEADER);
+            byte pactype = (byte)PAC_type.ar;
+            byte dtype = (byte)HMI_type.int64;
+            UInt16 len = (UInt16)(data.Length & UInt16.MaxValue);
+            List<byte> payload = new List<byte>();
+            payload.Add(pactype);
+            payload.Add(dtype);
+            payload.Add((byte)data.Length);
+            payload.AddRange(BitConverter.GetBytes(len).Reverse());
+            foreach (Int16 d in data)
+                payload.AddRange(BitConverter.GetBytes(d));
+            pac.AddRange(BitConverter.GetBytes((UInt16)payload.Count).Reverse());
+            pac.AddRange(payload);
+            pac.Add((byte)(payload.Select(x => (int)x).Sum() & 0xff));
+
+            return pac.ToArray();
+        }
+        byte[] encodeAr2Pac(UInt64[] data)
+        {
+            List<byte> pac = new List<byte>(_HEADER);
+            byte pactype = (byte)PAC_type.ar;
+            byte dtype = (byte)HMI_type.uint64;
+            UInt16 len = (UInt16)(data.Length & UInt16.MaxValue);
+            List<byte> payload = new List<byte>();
+            payload.Add(pactype);
+            payload.Add(dtype);
+            payload.Add((byte)data.Length);
+            payload.AddRange(BitConverter.GetBytes(len).Reverse());
+            foreach (Int16 d in data)
+                payload.AddRange(BitConverter.GetBytes(d));
+            pac.AddRange(BitConverter.GetBytes((UInt16)payload.Count).Reverse());
+            pac.AddRange(payload);
+            pac.Add((byte)(payload.Select(x => (int)x).Sum() & 0xff));
+
+            return pac.ToArray();
+        }
+        byte[] encodeAr2Pac(float[] data)
+        {
+            List<byte> pac = new List<byte>(_HEADER);
+            byte pactype = (byte)PAC_type.ar;
+            byte dtype = (byte)HMI_type.float32;
+            UInt16 len = (UInt16)(data.Length & UInt16.MaxValue);
+            List<byte> payload = new List<byte>();
+            payload.Add(pactype);
+            payload.Add(dtype);
+            payload.Add((byte)data.Length);
+            payload.AddRange(BitConverter.GetBytes(len).Reverse());
+            foreach (Int16 d in data)
+                payload.AddRange(BitConverter.GetBytes(d));
+            pac.AddRange(BitConverter.GetBytes((UInt16)payload.Count).Reverse());
+            pac.AddRange(payload);
+            pac.Add((byte)(payload.Select(x => (int)x).Sum() & 0xff));
+
+            return pac.ToArray();
+        }
+        byte[] encodeAr2Pac(double[] data)
+        {
+            List<byte> pac = new List<byte>(_HEADER);
+            byte pactype = (byte)PAC_type.ar;
+            byte dtype = (byte)HMI_type.float64;
+            UInt16 len = (UInt16)(data.Length & UInt16.MaxValue);
+            List<byte> payload = new List<byte>();
+            payload.Add(pactype);
+            payload.Add(dtype);
+            payload.Add((byte)data.Length);
+            payload.AddRange(BitConverter.GetBytes(len).Reverse());
+            foreach (Int16 d in data)
+                payload.AddRange(BitConverter.GetBytes(d));
+            pac.AddRange(BitConverter.GetBytes((UInt16)payload.Count).Reverse());
+            pac.AddRange(payload);
+            pac.Add((byte)(payload.Select(x => (int)x).Sum() & 0xff));
+            return pac.ToArray();
+        }
+        byte[] encodeAr2Pac(object[] data, byte dtype)
+        {
+            List<byte> pac = new List<byte>(_HEADER);
+            byte pactype = (byte)PAC_type.ar;
+
+            
+            List<byte> payload = new List<byte>();
+            payload.Add(pactype);
+            payload.Add(dtype);
+            byte dlen = (byte)data.Length;
+            payload.Add(dlen);
+            
+            List<byte> b_data=new List<byte>();
+            BinaryFormatter bf = new BinaryFormatter();
+            using (MemoryStream ms = new MemoryStream())
+            {
+                bf.Serialize(ms, data);
+                b_data.AddRange(ms.ToArray());
+            }
+            byte[] bdlen = BitConverter.GetBytes(b_data.Count);
+            payload.AddRange(bdlen.Reverse());
+            payload.AddRange(b_data);
+            byte[] pac_len = BitConverter.GetBytes((UInt16)payload.Count);
+            pac.AddRange(pac_len.Reverse());
+            pac.AddRange(payload);
+            pac.Add((byte)(payload.Select(x => (int)x).Sum() & 0xff));
+            return pac.ToArray();
+        }
+        byte[] encodeMt2Pac(object[] data,byte dtype,byte dim1,byte dim2)
+        {
+            List<byte> pac = new List<byte>(_HEADER);
+            byte pactype = (byte)PAC_type.mt;
+            //byte dtype = HMI_type.
+            List<byte> payload = new List<byte>();
+            payload.Add(pactype);
+            payload.Add(dtype);
+            payload.Add(dim1);
+            payload.Add(dim2);
+            List<byte> b_data = new List<byte>();
+            BinaryFormatter bf = new BinaryFormatter();
+            using (MemoryStream ms = new MemoryStream())
+            {
+                bf.Serialize(ms, data);
+                b_data.AddRange(ms.ToArray());
+            }
+            byte[] b_dlen = BitConverter.GetBytes(b_data.Count);
+            payload.AddRange(b_dlen.Reverse());
+            payload.AddRange(b_data);
+            byte[] pac_len = BitConverter.GetBytes(payload.Count);
+            pac.AddRange(pac_len.Reverse());
+            pac.AddRange(payload);
+            pac.Add((byte)(payload.Select(x => (int)x).Sum() & 0xff));
+
+            return pac.ToArray();
+        }
+        //byte[] encodeSt2Pac(object[] data,)
+        //{
+
+        //}
+    }
+
 }

@@ -48,11 +48,14 @@
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.pacSend = new System.Windows.Forms.Button();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
+            this.tabProgram = new System.Windows.Forms.TabPage();
             this.tabSetting = new System.Windows.Forms.TabPage();
             this.RTerminal = new System.Windows.Forms.ComboBox();
             this.label4 = new System.Windows.Forms.Label();
+            this.groupBox4 = new System.Windows.Forms.GroupBox();
             this.tabControl1.SuspendLayout();
             this.tabTerminal.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -63,6 +66,7 @@
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.tabSetting.SuspendLayout();
+            this.groupBox4.SuspendLayout();
             this.SuspendLayout();
             // 
             // serialPort1
@@ -233,6 +237,7 @@
             // tabControl1
             // 
             this.tabControl1.Controls.Add(this.tabTerminal);
+            this.tabControl1.Controls.Add(this.tabProgram);
             this.tabControl1.Controls.Add(this.tabSetting);
             this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl1.Font = new System.Drawing.Font("微軟正黑體", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
@@ -294,6 +299,7 @@
             // groupBox1
             // 
             this.groupBox1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.groupBox1.Controls.Add(this.pacSend);
             this.groupBox1.Controls.Add(this.binaryClear);
             this.groupBox1.Controls.Add(this.textBinary);
             this.groupBox1.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -304,6 +310,16 @@
             this.groupBox1.TabIndex = 11;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "ASAHMI";
+            // 
+            // pacSend
+            // 
+            this.pacSend.Location = new System.Drawing.Point(6, 408);
+            this.pacSend.Name = "pacSend";
+            this.pacSend.Size = new System.Drawing.Size(75, 23);
+            this.pacSend.TabIndex = 8;
+            this.pacSend.Text = "send";
+            this.pacSend.UseVisualStyleBackColor = true;
+            this.pacSend.Click += new System.EventHandler(this.pacSend_Click);
             // 
             // groupBox2
             // 
@@ -336,15 +352,24 @@
             this.flowLayoutPanel1.Size = new System.Drawing.Size(0, 0);
             this.flowLayoutPanel1.TabIndex = 7;
             // 
+            // tabProgram
+            // 
+            this.tabProgram.Location = new System.Drawing.Point(4, 25);
+            this.tabProgram.Name = "tabProgram";
+            this.tabProgram.Padding = new System.Windows.Forms.Padding(3);
+            this.tabProgram.Size = new System.Drawing.Size(912, 523);
+            this.tabProgram.TabIndex = 2;
+            this.tabProgram.Text = "Program";
+            this.tabProgram.UseVisualStyleBackColor = true;
+            // 
             // tabSetting
             // 
-            this.tabSetting.Controls.Add(this.RTerminal);
-            this.tabSetting.Controls.Add(this.label4);
+            this.tabSetting.Controls.Add(this.groupBox4);
             this.tabSetting.Location = new System.Drawing.Point(4, 25);
             this.tabSetting.Margin = new System.Windows.Forms.Padding(4);
             this.tabSetting.Name = "tabSetting";
             this.tabSetting.Padding = new System.Windows.Forms.Padding(4);
-            this.tabSetting.Size = new System.Drawing.Size(1041, 518);
+            this.tabSetting.Size = new System.Drawing.Size(912, 523);
             this.tabSetting.TabIndex = 1;
             this.tabSetting.Text = "Setting";
             this.tabSetting.UseVisualStyleBackColor = true;
@@ -357,7 +382,7 @@
             this.RTerminal.Items.AddRange(new object[] {
             "ASAHMI",
             "HEX解碼"});
-            this.RTerminal.Location = new System.Drawing.Point(123, 26);
+            this.RTerminal.Location = new System.Drawing.Point(100, 24);
             this.RTerminal.Name = "RTerminal";
             this.RTerminal.Size = new System.Drawing.Size(121, 24);
             this.RTerminal.TabIndex = 1;
@@ -366,11 +391,24 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(20, 29);
+            this.label4.Location = new System.Drawing.Point(8, 27);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(86, 16);
             this.label4.TabIndex = 0;
             this.label4.Text = "右側終端顯示 :";
+            // 
+            // groupBox4
+            // 
+            this.groupBox4.Controls.Add(this.label4);
+            this.groupBox4.Controls.Add(this.RTerminal);
+            this.groupBox4.Location = new System.Drawing.Point(8, 7);
+            this.groupBox4.Margin = new System.Windows.Forms.Padding(8);
+            this.groupBox4.Name = "groupBox4";
+            this.groupBox4.Padding = new System.Windows.Forms.Padding(5);
+            this.groupBox4.Size = new System.Drawing.Size(367, 233);
+            this.groupBox4.TabIndex = 2;
+            this.groupBox4.TabStop = false;
+            this.groupBox4.Text = "Terminal setting";
             // 
             // Form1
             // 
@@ -398,7 +436,8 @@
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             this.tabSetting.ResumeLayout(false);
-            this.tabSetting.PerformLayout();
+            this.groupBox4.ResumeLayout(false);
+            this.groupBox4.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -429,6 +468,9 @@
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.SplitContainer splitContainer1;
+        private System.Windows.Forms.Button pacSend;
+        private System.Windows.Forms.TabPage tabProgram;
+        private System.Windows.Forms.GroupBox groupBox4;
     }
 }
 
