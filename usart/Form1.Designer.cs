@@ -53,9 +53,9 @@
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             this.tabProgram = new System.Windows.Forms.TabPage();
             this.tabSetting = new System.Windows.Forms.TabPage();
-            this.RTerminal = new System.Windows.Forms.ComboBox();
-            this.label4 = new System.Windows.Forms.Label();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.label4 = new System.Windows.Forms.Label();
+            this.RTerminal = new System.Windows.Forms.ComboBox();
             this.tabControl1.SuspendLayout();
             this.tabTerminal.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -72,7 +72,9 @@
             // serialPort1
             // 
             this.serialPort1.BaudRate = 38400;
+            this.serialPort1.DtrEnable = true;
             this.serialPort1.PortName = "COM3";
+            this.serialPort1.RtsEnable = true;
             this.serialPort1.DataReceived += new System.IO.Ports.SerialDataReceivedEventHandler(this.serialPort1_DataReceived);
             // 
             // comboPort
@@ -375,28 +377,6 @@
             this.tabSetting.UseVisualStyleBackColor = true;
             this.tabSetting.Enter += new System.EventHandler(this.tabSetting_Enter);
             // 
-            // RTerminal
-            // 
-            this.RTerminal.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.RTerminal.FormattingEnabled = true;
-            this.RTerminal.Items.AddRange(new object[] {
-            "ASAHMI",
-            "HEX解碼"});
-            this.RTerminal.Location = new System.Drawing.Point(100, 24);
-            this.RTerminal.Name = "RTerminal";
-            this.RTerminal.Size = new System.Drawing.Size(121, 24);
-            this.RTerminal.TabIndex = 1;
-            this.RTerminal.SelectedIndexChanged += new System.EventHandler(this.RTerminal_SelectedIndexChanged);
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(8, 27);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(86, 16);
-            this.label4.TabIndex = 0;
-            this.label4.Text = "右側終端顯示 :";
-            // 
             // groupBox4
             // 
             this.groupBox4.Controls.Add(this.label4);
@@ -409,6 +389,28 @@
             this.groupBox4.TabIndex = 2;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Terminal setting";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(8, 27);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(86, 16);
+            this.label4.TabIndex = 0;
+            this.label4.Text = "右側終端顯示 :";
+            // 
+            // RTerminal
+            // 
+            this.RTerminal.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.RTerminal.FormattingEnabled = true;
+            this.RTerminal.Items.AddRange(new object[] {
+            "ASAHMI",
+            "HEX解碼"});
+            this.RTerminal.Location = new System.Drawing.Point(100, 24);
+            this.RTerminal.Name = "RTerminal";
+            this.RTerminal.Size = new System.Drawing.Size(121, 24);
+            this.RTerminal.TabIndex = 1;
+            this.RTerminal.SelectedIndexChanged += new System.EventHandler(this.RTerminal_SelectedIndexChanged);
             // 
             // Form1
             // 
