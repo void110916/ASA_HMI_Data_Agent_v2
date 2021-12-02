@@ -10,7 +10,7 @@ using System.Windows.Forms;
 using System.IO.Ports;
 using System.IO;
 using System.Threading;
-
+using System.Text.RegularExpressions;
 namespace usart
 {
     public partial class Form1 : Form
@@ -21,7 +21,7 @@ namespace usart
             string[] coms = portSearch();
             foreach (string com in coms)
             {
-                if (portOn(com))
+                if (portOn(com,38400,8))
                 {
                     break;
                 }
@@ -42,20 +42,21 @@ namespace usart
             }
             return coms;
         }
-        private bool portOn(string portName)
+        private bool portOn(string portName,int baud,int databit)
         {
 
             string[] coms = portSearch();
             if (coms.Contains<string>(portName))
             {
                 serialPort1.PortName = portName;
-                serialPort1.BaudRate = 38400;
+                serialPort1.BaudRate =baud;
+                serialPort1.DataBits = databit;
                 //Console.WriteLine(serialPort1.Encoding);
                 try
                 {
                     serialPort1.Open();
-                    serialPort1.DiscardInBuffer();
-                    serialPort1.DiscardOutBuffer();
+                    //serialPort1.DiscardInBuffer();
+                    //serialPort1.DiscardOutBuffer();
                 }
                 catch
                 {
@@ -71,7 +72,8 @@ namespace usart
                     COM.ForeColor = Color.Green;
 
                     comboPort.Enabled = false;
-                    
+                    textBaud.Enabled = false;
+                    textBit.Enabled = false;
                     return true;
                 }
             }
@@ -86,7 +88,10 @@ namespace usart
                 comboPort.SelectedItem = portName;
                 COM.Text = "OFF";
                 COM.ForeColor = Color.Red;
+
                 comboPort.Enabled = true;
+                textBaud.Enabled = true;
+                textBit.Enabled = true;
                 return true;
             }
             return false;
@@ -100,7 +105,7 @@ namespace usart
 
         private void textBaud_KeyUp(object sender, KeyEventArgs e)
         {
-            if(e.KeyCode==Keys.Enter)
+            if (e.KeyCode == Keys.Enter)
             {
                 serialPort1.BaudRate = int.Parse(textBaud.Text);
                 Terminal.Text += "(system) BaudRate is changed\n";
@@ -118,11 +123,11 @@ namespace usart
 
         private void button2_Click(object sender, EventArgs e)
         {
-            if(serialPort1.IsOpen)
+            if (serialPort1.IsOpen)
             {
                 serialPort1.Write(textWrite.Text);
             }
-            Terminal.Text += "<<"+textWrite.Text+"\n";
+            Terminal.Text += "<<" + textWrite.Text + "\n";
             textWrite.Clear();
 
         }
@@ -136,14 +141,15 @@ namespace usart
         private void binaryClear_Click(object sender, EventArgs e)
         {
             textBinary.Clear();
-;        }
+            ;
+        }
         private void COM_Click(object sender, EventArgs e)
         {
             if (comboPort.SelectedItem != null)
             {
                 if (COM.Text == "OFF")
                 {
-                    portOn(comboPort.SelectedItem.ToString());
+                    portOn(comboPort.SelectedItem.ToString(),int.Parse(textBaud.Text),int.Parse(textBit.Text));
                 }
                 else if (COM.Text == "ON")
                 {
@@ -159,15 +165,15 @@ namespace usart
                 {
                     serialPort1.Write(textWrite.Text);
                 }
-                Terminal.Text += "<<"+textWrite.Text+"\n";
+                Terminal.Text += "<<" + textWrite.Text + "\n";
 
                 textWrite.Clear();
             }
         }
         enum right_terminal_state
         {
-            ASAHMI=0,
-            HEX=1
+            ASAHMI = 0,
+            HEX = 1
         }
         ASADecode decode = new ASADecode();
         ASAEncode encode = new ASAEncode();
@@ -176,17 +182,20 @@ namespace usart
             Thread.Sleep(5);  //（毫秒）等待一定時間，確保資料的完整性 int len        
             int len = serialPort1.BytesToRead;
             string receivedata = string.Empty;
-            
+            Regex rx = new Regex(@"~G[AMS],");
+
             byte[] buffs;
             if (len != 0)
             {
                 buffs = new byte[len];
                 serialPort1.Read(buffs, 0, len);
-                receivedata = Encoding.UTF8.GetString(buffs);
-                
+                receivedata = Encoding.UTF8.GetString(buffs); 
+                var mt = rx.Match(receivedata);
+                if (mt.Success)
+                    serialPort1.WriteLine("~ACK");
                 if (Terminal.InvokeRequired)
                 {
-                    Action updateMethod = new Action(() => Terminal.AppendText(receivedata.Replace('�', ' ')));
+                    Action updateMethod = new Action(() => Terminal.AppendText(receivedata.Replace("�",string.Empty)));
                     Terminal.Invoke(updateMethod);
                 }
                 else
@@ -196,7 +205,7 @@ namespace usart
                 int rTerminalIndex = 0;
                 if (RTerminal.InvokeRequired)
                 {
-                    Action updateMethod = new Action(() => rTerminalIndex = RTerminal.SelectedIndex) ;
+                    Action updateMethod = new Action(() => rTerminalIndex = RTerminal.SelectedIndex);
                     Terminal.Invoke(updateMethod);
                 }
                 else
@@ -211,7 +220,7 @@ namespace usart
                         if (decode.putEnable)
                         {
                             string text = decode.get();
-                            
+
                             if (textBinary.InvokeRequired)
                             {
                                 Action updateMethod = new Action(() => textBinary.AppendText(text));
@@ -224,7 +233,7 @@ namespace usart
                         }
                     }
                 }
-                else if (rTerminalIndex== (int)right_terminal_state.HEX)
+                else if (rTerminalIndex == (int)right_terminal_state.HEX)
                 {
                     StringBuilder s = new StringBuilder();
                     foreach (byte i in buffs)
@@ -242,8 +251,7 @@ namespace usart
                     }
                 }
             }
-            serialPort1.DiscardInBuffer();
-           
+
         }
 
         private void pacSend_Click(object sender, EventArgs e)
@@ -253,7 +261,7 @@ namespace usart
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if(serialPort1.IsOpen)
+            if (serialPort1.IsOpen)
             {
                 serialPort1.Dispose();
             }
@@ -268,9 +276,9 @@ namespace usart
         {
 
             groupBox1.Text = RTerminal.SelectedItem.ToString();
-            
+
         }
 
-        
+
     }
 }

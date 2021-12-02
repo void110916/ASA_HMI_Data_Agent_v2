@@ -1,3 +1,4 @@
 usart/obj/
 decode_test/obj/
 .vs/
+decode_test/bin/
