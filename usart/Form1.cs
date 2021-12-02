@@ -165,7 +165,7 @@ namespace usart
                 {
                     serialPort1.Write(textWrite.Text);
                 }
-                Terminal.Text += "<<" + textWrite.Text + "\n";
+                Terminal.Text += "<<" + textWrite.Text +"\r\n";
 
                 textWrite.Clear();
             }
@@ -182,7 +182,7 @@ namespace usart
             Thread.Sleep(5);  //（毫秒）等待一定時間，確保資料的完整性 int len        
             int len = serialPort1.BytesToRead;
             string receivedata = string.Empty;
-            Regex rx = new Regex(@"~G[AMS],");
+            Regex rx = new Regex(@"~G[AMS],");  //檢查是否有HMI sync format封包
 
             byte[] buffs;
             if (len != 0)
@@ -276,7 +276,8 @@ namespace usart
         {
 
             groupBox1.Text = RTerminal.SelectedItem.ToString();
-
+            textBinary.Text = "";
+            pacSend.Visible = RTerminal.SelectedItem.ToString() == "ASAHMI";
         }
 
 
