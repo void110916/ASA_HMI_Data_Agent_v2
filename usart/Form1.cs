@@ -179,47 +179,21 @@ namespace usart
         ASAEncode encode = new ASAEncode();
         private void serialPort1_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            Thread.Sleep(10);  //（毫秒）等待一定時間，確保資料的完整性 int len
+            Regex rx = new Regex(@"~G[AMS],");  //檢查是否有HMI sync format封包
+            Thread.Sleep(5);  //（毫秒）等待一定時間，確保資料的完整性 int len
             if (!serialPort1.IsOpen)
             {
                 return;
             }
-
-            int len = serialPort1.BytesToRead;
-            string receivedata = string.Empty;
-            Regex rx = new Regex(@"~G[AMS],");  //檢查是否有HMI sync format封包
-
             byte[] buffs;
+            int len = serialPort1.BytesToRead;
+
             if (len != 0)
             {
                 buffs = new byte[len];
                 serialPort1.Read(buffs, 0, len);
-                receivedata = Encoding.UTF8.GetString(buffs);
-                var mt = rx.Match(receivedata);
-                if (mt.Success)
-                {
-                    serialPort1.WriteLine("~ACK");
-                }
-
-                if (Terminal.InvokeRequired)
-                {
-                    Action updateMethod = new Action(() => { 
-                        Terminal.AppendText(receivedata.Replace("�", string.Empty));
-                        if (mt.Success)
-                        {
-                            Terminal.Text += "<< ~ACK \r\n";
-                        }
-                    });
-                    Terminal.Invoke(updateMethod);
-                }
-                else
-                {
-                    Terminal.AppendText(receivedata);
-                    if (mt.Success)
-                    {
-                        Terminal.Text += "<< ~ACK \r\n";
-                    }
-                }
+                List<byte> terminal_buffs = new List<byte>(buffs.Length);
+                int i = 0;
                 int rTerminalIndex = 0;
                 if (RTerminal.InvokeRequired)
                 {
@@ -230,42 +204,76 @@ namespace usart
                 {
                     rTerminalIndex = RTerminal.SelectedIndex;
                 }
-                if (rTerminalIndex == (int)right_terminal_state.ASAHMI)
+                foreach (var buff in buffs)
                 {
-                    foreach (var buff in buffs)
+                    var terminal_buff = decode.put(buff);
+                    if (terminal_buff != 0)
                     {
-                        decode.put(buff);
-                        if (decode.putEnable)
-                        {
-                            string text = decode.get();
+                        terminal_buffs.Add(terminal_buff);
+                        i++;
+                    }
 
-                            if (textBinary.InvokeRequired)
-                            {
-                                Action updateMethod = new Action(() => textBinary.AppendText(text));
-                                textBinary.Invoke(updateMethod);
-                            }
-                            else
-                            {
-                                Terminal.AppendText(text);
-                            }
+                    if (decode.putEnable && rTerminalIndex == (int)right_terminal_state.ASAHMI)
+                    {
+                        string text = decode.get();
+
+                        if (textBinary.InvokeRequired)
+                        {
+                            Action updateMethod = new Action(() => textBinary.AppendText(text));
+                            textBinary.Invoke(updateMethod);
+                        }
+                        else
+                        {
+                            Terminal.AppendText(text);
                         }
                     }
                 }
-                else if (rTerminalIndex == (int)right_terminal_state.HEX)
+
+
+                string receivedata = Encoding.UTF8.GetString(terminal_buffs.ToArray());
+                var mt = rx.Match(receivedata);
+                if (mt.Success)
                 {
-                    StringBuilder s = new StringBuilder();
-                    foreach (byte i in buffs)
+                    serialPort1.WriteLine("~ACK");
+                }
+
+                if (Terminal.InvokeRequired)
+                {
+                    Action updateMethod = new Action(() =>
                     {
-                        s.Append(i.ToString("X2")).Append(" ");
+                        Terminal.AppendText(receivedata);
+                        if (mt.Success)
+                        {
+                            Terminal.Text=Terminal.Text.Insert(Terminal.Text.LastIndexOf("\n")+1, "<< ~ACK\r\n");
+                        }
+                    });
+                    Terminal.Invoke(updateMethod);
+                }
+                else
+                {
+                    Terminal.AppendText(receivedata);
+                    if (mt.Success)
+                    {
+                        Terminal.Text = Terminal.Text.Insert(Terminal.Text.LastIndexOf("\n") + 1, "<< ~ACK\r\n");
+                    }
+                }
+
+                if (rTerminalIndex == (int)right_terminal_state.HEX)
+                {
+                    string s = "";
+
+                    foreach (byte buff in buffs)
+                    {
+                        s += buff.ToString("X2") + " ";
                     }
                     if (textBinary.InvokeRequired)
                     {
-                        Action updateMethod = new Action(() => textBinary.AppendText(s.ToString()));
+                        Action updateMethod = new Action(() => textBinary.AppendText(s));
                         textBinary.Invoke(updateMethod);
                     }
                     else
                     {
-                        textBinary.AppendText(s.ToString());
+                        textBinary.AppendText(s);
                     }
                 }
             }

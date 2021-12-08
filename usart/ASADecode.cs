@@ -262,6 +262,7 @@ namespace usart
                     clear();
                     extraDecode = true;
                     count++;
+                    return 0;
                 }
                 return buff;
             }
