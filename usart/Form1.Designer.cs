@@ -56,6 +56,7 @@
             this.groupBox4 = new System.Windows.Forms.GroupBox();
             this.label4 = new System.Windows.Forms.Label();
             this.RTerminal = new System.Windows.Forms.ComboBox();
+            this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.tabControl1.SuspendLayout();
             this.tabTerminal.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -65,6 +66,7 @@
             this.groupBox3.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
+            this.tabProgram.SuspendLayout();
             this.tabSetting.SuspendLayout();
             this.groupBox4.SuspendLayout();
             this.SuspendLayout();
@@ -180,7 +182,7 @@
             this.terminalClear.TabIndex = 2;
             this.terminalClear.Text = "Clear";
             this.terminalClear.UseVisualStyleBackColor = true;
-            this.terminalClear.Click += new System.EventHandler(this.button1_Click);
+            this.terminalClear.Click += new System.EventHandler(this.termina_clear_Click);
             // 
             // TerminalEnter
             // 
@@ -194,7 +196,7 @@
             this.TerminalEnter.TabIndex = 1;
             this.TerminalEnter.Text = "Enter";
             this.TerminalEnter.UseVisualStyleBackColor = true;
-            this.TerminalEnter.Click += new System.EventHandler(this.button2_Click);
+            this.TerminalEnter.Click += new System.EventHandler(this.terminal_enter_Click);
             // 
             // textWrite
             // 
@@ -246,6 +248,7 @@
             this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Margin = new System.Windows.Forms.Padding(4);
             this.tabControl1.Name = "tabControl1";
+            this.tabControl1.Padding = new System.Drawing.Point(10, 3);
             this.tabControl1.SelectedIndex = 0;
             this.tabControl1.Size = new System.Drawing.Size(920, 552);
             this.tabControl1.TabIndex = 11;
@@ -257,7 +260,7 @@
             this.tabTerminal.Controls.Add(this.flowLayoutPanel1);
             this.tabTerminal.Font = new System.Drawing.Font("微軟正黑體", 9F);
             this.tabTerminal.Location = new System.Drawing.Point(4, 25);
-            this.tabTerminal.Margin = new System.Windows.Forms.Padding(5);
+            this.tabTerminal.Margin = new System.Windows.Forms.Padding(0, 5, 0, 5);
             this.tabTerminal.Name = "tabTerminal";
             this.tabTerminal.Size = new System.Drawing.Size(912, 523);
             this.tabTerminal.TabIndex = 0;
@@ -315,7 +318,8 @@
             // 
             // pacSend
             // 
-            this.pacSend.Location = new System.Drawing.Point(6, 408);
+            this.pacSend.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.pacSend.Location = new System.Drawing.Point(6, 409);
             this.pacSend.Name = "pacSend";
             this.pacSend.Size = new System.Drawing.Size(75, 23);
             this.pacSend.TabIndex = 8;
@@ -356,6 +360,7 @@
             // 
             // tabProgram
             // 
+            this.tabProgram.Controls.Add(this.progressBar1);
             this.tabProgram.Location = new System.Drawing.Point(4, 25);
             this.tabProgram.Name = "tabProgram";
             this.tabProgram.Padding = new System.Windows.Forms.Padding(3);
@@ -412,6 +417,14 @@
             this.RTerminal.TabIndex = 1;
             this.RTerminal.SelectedIndexChanged += new System.EventHandler(this.RTerminal_SelectedIndexChanged);
             // 
+            // progressBar1
+            // 
+            this.progressBar1.Location = new System.Drawing.Point(223, 367);
+            this.progressBar1.Name = "progressBar1";
+            this.progressBar1.Size = new System.Drawing.Size(494, 23);
+            this.progressBar1.TabIndex = 0;
+            this.progressBar1.Value = 50;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
@@ -437,6 +450,7 @@
             this.groupBox1.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
+            this.tabProgram.ResumeLayout(false);
             this.tabSetting.ResumeLayout(false);
             this.groupBox4.ResumeLayout(false);
             this.groupBox4.PerformLayout();
@@ -473,6 +487,7 @@
         private System.Windows.Forms.Button pacSend;
         private System.Windows.Forms.TabPage tabProgram;
         private System.Windows.Forms.GroupBox groupBox4;
+        private System.Windows.Forms.ProgressBar progressBar1;
     }
 }
 

@@ -21,7 +21,7 @@ namespace usart
             string[] coms = portSearch();
             foreach (string com in coms)
             {
-                if (portOn(com,38400,8))
+                if (portOn(com, 38400, 8))
                 {
                     break;
                 }
@@ -42,14 +42,14 @@ namespace usart
             }
             return coms;
         }
-        private bool portOn(string portName,int baud,int databit)
+        private bool portOn(string portName, int baud, int databit)
         {
 
             string[] coms = portSearch();
             if (coms.Contains<string>(portName))
             {
                 serialPort1.PortName = portName;
-                serialPort1.BaudRate =baud;
+                serialPort1.BaudRate = baud;
                 serialPort1.DataBits = databit;
                 //Console.WriteLine(serialPort1.Encoding);
                 try
@@ -121,18 +121,18 @@ namespace usart
             }
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void terminal_enter_Click(object sender, EventArgs e)
         {
             if (serialPort1.IsOpen)
             {
                 serialPort1.Write(textWrite.Text);
             }
-            Terminal.Text += "<<" + textWrite.Text + "\n";
+            Terminal.Text += "<<" + textWrite.Text + "\r\n";
             textWrite.Clear();
 
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void termina_clear_Click(object sender, EventArgs e)
         {
             Terminal.Clear();
             textWrite.Clear();
@@ -141,7 +141,7 @@ namespace usart
         private void binaryClear_Click(object sender, EventArgs e)
         {
             textBinary.Clear();
-            ;
+
         }
         private void COM_Click(object sender, EventArgs e)
         {
@@ -149,7 +149,7 @@ namespace usart
             {
                 if (COM.Text == "OFF")
                 {
-                    portOn(comboPort.SelectedItem.ToString(),int.Parse(textBaud.Text),int.Parse(textBit.Text));
+                    portOn(comboPort.SelectedItem.ToString(), int.Parse(textBaud.Text), int.Parse(textBit.Text));
                 }
                 else if (COM.Text == "ON")
                 {
@@ -165,7 +165,7 @@ namespace usart
                 {
                     serialPort1.Write(textWrite.Text);
                 }
-                Terminal.Text += "<<" + textWrite.Text +"\r\n";
+                Terminal.Text += "<<" + textWrite.Text + "\r\n";
 
                 textWrite.Clear();
             }
@@ -179,7 +179,12 @@ namespace usart
         ASAEncode encode = new ASAEncode();
         private void serialPort1_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            Thread.Sleep(5);  //（毫秒）等待一定時間，確保資料的完整性 int len        
+            Thread.Sleep(10);  //（毫秒）等待一定時間，確保資料的完整性 int len
+            if (!serialPort1.IsOpen)
+            {
+                return;
+            }
+
             int len = serialPort1.BytesToRead;
             string receivedata = string.Empty;
             Regex rx = new Regex(@"~G[AMS],");  //檢查是否有HMI sync format封包
@@ -189,18 +194,31 @@ namespace usart
             {
                 buffs = new byte[len];
                 serialPort1.Read(buffs, 0, len);
-                receivedata = Encoding.UTF8.GetString(buffs); 
+                receivedata = Encoding.UTF8.GetString(buffs);
                 var mt = rx.Match(receivedata);
                 if (mt.Success)
+                {
                     serialPort1.WriteLine("~ACK");
+                }
+
                 if (Terminal.InvokeRequired)
                 {
-                    Action updateMethod = new Action(() => Terminal.AppendText(receivedata.Replace("�",string.Empty)));
+                    Action updateMethod = new Action(() => { 
+                        Terminal.AppendText(receivedata.Replace("�", string.Empty));
+                        if (mt.Success)
+                        {
+                            Terminal.Text += "<< ~ACK \r\n";
+                        }
+                    });
                     Terminal.Invoke(updateMethod);
                 }
                 else
                 {
                     Terminal.AppendText(receivedata);
+                    if (mt.Success)
+                    {
+                        Terminal.Text += "<< ~ACK \r\n";
+                    }
                 }
                 int rTerminalIndex = 0;
                 if (RTerminal.InvokeRequired)
@@ -256,15 +274,35 @@ namespace usart
 
         private void pacSend_Click(object sender, EventArgs e)
         {
+            var is_ready = encode.put(textBinary.Text);
+            if (!is_ready)
+            {
+                MessageBox.Show("HMI format incorrect!!", "HMI warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                //Terminal.Text += "( HMI format error!! )\r\n";
+                return;
+            }
+            var package = encode.get();
+            if (Terminal.Text.EndsWith(""))
+            {
+                serialPort1.Write("~ACK");
+            }
+            serialPort1.Write(package);
 
+            //int[] a = new int[] { 0, 0, 0 };
+            ////int[] a = { 0, 0, 0 };
+            //var str=Console.ReadLine();
+            //var val = str.Split(' ');
+            //for (int i=0;i<val.Length;i++)
+            //{
+            //    a[i]=int.Parse(val[i]);
+            //}
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (serialPort1.IsOpen)
-            {
-                serialPort1.Dispose();
-            }
+
+            serialPort1.Dispose();
+
         }
 
         private void tabSetting_Enter(object sender, EventArgs e)
