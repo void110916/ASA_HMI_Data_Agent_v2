@@ -180,7 +180,7 @@ namespace usart
         private void serialPort1_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             Regex rx = new Regex(@"~G[AMS],");  //檢查是否有HMI sync format封包
-            Thread.Sleep(5);  //（毫秒）等待一定時間，確保資料的完整性 int len
+            Thread.Sleep(15);  //（毫秒）等待一定時間，確保資料的完整性 int len
             if (!serialPort1.IsOpen)
             {
                 return;
@@ -244,7 +244,8 @@ namespace usart
                         Terminal.AppendText(receivedata);
                         if (mt.Success)
                         {
-                            Terminal.Text=Terminal.Text.Insert(Terminal.Text.LastIndexOf("\n")+1, "<< ~ACK\r\n");
+                            var idx = Terminal.Text.LastIndexOf("\n");
+                            Terminal.Text = Terminal.Text.Insert(idx + 1, "<< ~ACK\r\n");
                         }
                     });
                     Terminal.Invoke(updateMethod);
@@ -254,7 +255,8 @@ namespace usart
                     Terminal.AppendText(receivedata);
                     if (mt.Success)
                     {
-                        Terminal.Text = Terminal.Text.Insert(Terminal.Text.LastIndexOf("\n") + 1, "<< ~ACK\r\n");
+                        var idx = Terminal.Text.LastIndexOf("\n");
+                        Terminal.Text = Terminal.Text.Insert(idx + 1, "<< ~ACK\r\n");
                     }
                 }
 
@@ -282,13 +284,30 @@ namespace usart
 
         private void pacSend_Click(object sender, EventArgs e)
         {
-            var is_ready = encode.put(textBinary.Text);
-            if (!is_ready)
+            var formats = encode.split(textBinary.Text);
+            if (formats.Length > 1)
             {
-                MessageBox.Show("HMI format incorrect!!", "HMI warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                //Terminal.Text += "( HMI format error!! )\r\n";
-                return;
+                var resault = MessageBox.Show("multi-format detected, do you want to send all at ones?", "HMI warning", MessageBoxButtons.YesNoCancel);
+                if (resault == DialogResult.Cancel)
+                    return;
+                else if (resault == DialogResult.No)
+                {
+                    var is_ready = encode.put(formats[0]);
+                    if (!is_ready)
+                    {
+                        MessageBox.Show("HMI format incorrect!!", "HMI warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+                }
+
             }
+            //var is_ready = encode.put(textBinary.Text);
+            //if (!is_ready)
+            //{
+            //    MessageBox.Show("HMI format incorrect!!", "HMI warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            //    //Terminal.Text += "( HMI format error!! )\r\n";
+            //    return;
+            //}
             var package = encode.get();
             if (Terminal.Text.EndsWith(""))
             {

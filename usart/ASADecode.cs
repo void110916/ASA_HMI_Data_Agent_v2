@@ -8,6 +8,8 @@ using System.Text.RegularExpressions;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
+
+
 namespace usart
 {
     enum state : UInt16
@@ -33,26 +35,37 @@ namespace usart
         st_dat_len = 32,
         st_dat = 33
     }
-    enum HMI_type : UInt16
+    enum HMI_type : byte
     {
-        int8 = 0,
-        int16 = 1,
-        int32 = 2,
-        int64 = 3,
-        uint8 = 4,
-        uint16 = 5,
-        uint32 = 6,
-        uint64 = 7,
-        float32 = 8,
-        float64 = 9
+        i8 = 0,
+        i16 = 1,
+        i32 = 2,
+        i64 = 3,
+        ui8 = 4,
+        ui16 = 5,
+        ui32 = 6,
+        ui64 = 7,
+        f32 = 8,
+        f64 = 9
     }
-    enum PAC_type : UInt16
+    public enum PAC_type : UInt16
     {
         ar = 1,
         mt = 2,
         st = 3
     }
-
+    public struct HMI_format
+    {
+        public PAC_type type;
+        public Match main_format;
+        public Match[] child_format;
+        public HMI_format(PAC_type type, Match main_format, Match[] child_format)
+        {
+            this.type = type;
+            this.main_format = main_format;
+            this.child_format = child_format;
+        }
+    }
 
     public class ASADecode
     {
@@ -281,7 +294,7 @@ namespace usart
                 data[0] = ((HMI_type)ar_type).ToString();
                 data[1] = ar_num.ToString();
                 data[2] = dataTransfirm((HMI_type)ar_type, ar_dat);
-                text = string.Format("{0}_{1}:\r\n\t{{ {2} }} \r\n\r\n", data[0], data[1], data[2]);
+                text = string.Format("{0}_{1} :\r\n    {{ {2} }}\r\n\r\n", data[0], data[1], data[2]);
             }
             else if (pkg_type == (UInt16)PAC_type.mt)
             {
@@ -305,70 +318,69 @@ namespace usart
                 {
 
                     string[] info = tx.Split('_');
-                    string st="";
+                    string st = "";
                     switch (info[0])
                     {
                         case "ui8":
                             var dat = st_dat.GetRange(0, int.Parse(info[1]) * sizeof(byte)).ToArray();
-                            st = dataTransfirm(HMI_type.uint8, dat);
+                            st = dataTransfirm(HMI_type.ui8, dat);
                             st_dat.RemoveRange(0, int.Parse(info[1]));
                             break;
                         case "ui16":
                             dat = st_dat.GetRange(0, int.Parse(info[1]) * sizeof(UInt16)).ToArray();
-                            st = dataTransfirm(HMI_type.uint16, dat);
+                            st = dataTransfirm(HMI_type.ui16, dat);
                             st_dat.RemoveRange(0, int.Parse(info[1]) * 2);
                             break;
                         case "ui32":
                             dat = st_dat.GetRange(0, int.Parse(info[1]) * sizeof(UInt32)).ToArray();
-                            st = dataTransfirm(HMI_type.uint32, dat);
+                            st = dataTransfirm(HMI_type.ui32, dat);
                             st_dat.RemoveRange(0, int.Parse(info[1]) * 4);
                             break;
                         case "ui64":
                             dat = st_dat.GetRange(0, int.Parse(info[1]) * sizeof(UInt64)).ToArray();
-                            st = dataTransfirm(HMI_type.uint64, dat);
+                            st = dataTransfirm(HMI_type.ui64, dat);
                             st_dat.RemoveRange(0, int.Parse(info[1]) * 8);
                             break;
                         case "i8":
                             dat = st_dat.GetRange(0, int.Parse(info[1]) * sizeof(sbyte)).ToArray();
-                            st = dataTransfirm(HMI_type.int8, dat);
+                            st = dataTransfirm(HMI_type.i8, dat);
                             st_dat.RemoveRange(0, int.Parse(info[1]));
                             break;
                         case "i16":
                             dat = st_dat.GetRange(0, int.Parse(info[1]) * sizeof(Int16)).ToArray();
-                            st = dataTransfirm(HMI_type.int16, dat);
+                            st = dataTransfirm(HMI_type.i16, dat);
                             st_dat.RemoveRange(0, int.Parse(info[1]) * 2);
                             break;
                         case "i32":
                             dat = st_dat.GetRange(0, int.Parse(info[1]) * sizeof(Int32)).ToArray();
-                            st = dataTransfirm(HMI_type.int32, dat);
+                            st = dataTransfirm(HMI_type.i32, dat);
                             st_dat.RemoveRange(0, int.Parse(info[1]) * 4);
                             break;
                         case "i64":
                             dat = st_dat.GetRange(0, int.Parse(info[1]) * sizeof(Int64)).ToArray();
-                            st = dataTransfirm(HMI_type.int64, dat);
+                            st = dataTransfirm(HMI_type.i64, dat);
                             st_dat.RemoveRange(0, int.Parse(info[1]) * 8);
                             break;
                         case "f32":
                             dat = st_dat.GetRange(0, int.Parse(info[1]) * sizeof(float)).ToArray();
-                            st = dataTransfirm(HMI_type.float32, dat);
+                            st = dataTransfirm(HMI_type.f32, dat);
                             st_dat.RemoveRange(0, int.Parse(info[1]));
                             break;
                         case "f64":
                             dat = st_dat.GetRange(0, int.Parse(info[1]) * sizeof(double)).ToArray();
-                            st = dataTransfirm(HMI_type.float64, dat);
+                            st = dataTransfirm(HMI_type.f64, dat);
                             st_dat.RemoveRange(0, int.Parse(info[1]));
                             break;
                     }
-                    text += "    " + tx + " :\r\n\t{ " + st + " }\r\n";
+                    text += "    " + tx + " :\r\n        { " + st + " }\r\n";
                 }
-
+                text += "}\r\n\r\n";
             }
             else
             {
                 return null;
             }
             clear();
-            text += "}\r\n\r\n";
             return text;
         }
         private void clear()
@@ -404,42 +416,42 @@ namespace usart
             string opt = null;
             switch (type)
             {
-                case HMI_type.int8:
+                case HMI_type.i8:
                     sbyte[] d8 = new sbyte[data.Length];
                     Buffer.BlockCopy(data, 0, d8, 0, data.Length);
                     opt = string.Join(", ", d8);
                     break;
-                case HMI_type.int16:
+                case HMI_type.i16:
                     Int16[] d16 = new Int16[data.Length / 2];
                     Buffer.BlockCopy(data, 0, d16, 0, data.Length);
                     opt = string.Join(", ", d16);
                     break;
-                case HMI_type.int32:
+                case HMI_type.i32:
                     Int16[] d32 = new Int16[data.Length / 4];
                     Buffer.BlockCopy(data, 0, d32, 0, data.Length);
                     opt = string.Join(", ", d32);
                     break;
-                case HMI_type.int64:
+                case HMI_type.i64:
                     Int16[] d64 = new Int16[data.Length / 8];
                     Buffer.BlockCopy(data, 0, d64, 0, data.Length);
                     opt = string.Join(", ", d64);
                     break;
-                case HMI_type.uint8:
+                case HMI_type.ui8:
                     Int16[] du8 = new Int16[data.Length];
                     Buffer.BlockCopy(data, 0, du8, 0, data.Length);
                     opt = string.Join(", ", du8);
                     break;
-                case HMI_type.uint16:
+                case HMI_type.ui16:
                     UInt16[] du16 = new ushort[data.Length / 2];
                     Buffer.BlockCopy(data, 0, du16, 0, data.Length);
                     opt = string.Join(", ", du16);
                     break;
-                case HMI_type.uint32:
+                case HMI_type.ui32:
                     Int16[] du32 = new Int16[data.Length / 2];
                     Buffer.BlockCopy(data, 0, du32, 0, data.Length);
                     opt = string.Join(", ", du32);
                     break;
-                case HMI_type.uint64:
+                case HMI_type.ui64:
                     UInt64[] du64 = new UInt64[data.Length / 8];
                     Buffer.BlockCopy(data, 0, du64, 0, data.Length);
                     opt = string.Join(", ", du64);
@@ -477,7 +489,10 @@ namespace usart
         List<byte> st_dat;
 
         byte[] data;
-        Regex regex = new Regex(@"i[0-9]{1,2}_[0-9]+:{[^{}]*}", RegexOptions.Compiled);
+        // Regex st_g_re = new Regex(@"(i[0-9]{1,2}_[0-9]+(?:x[0-9]*)? *(?:, i[0-9]{1,2}_[0-9]+ )?):\s*({\s*.*\s*})+", RegexOptions.Compiled);  // structure global format regex
+        //Regex mt_re = new Regex(@"(i[0-9]{1,2}_[0-9]+(?:x[0-9]*)? *(?:, i[0-9]{1,2}_[0-9]+ )?:\s*(((?<open>{)[^{}]*)+((?<-open>})\s*)+)(?(open)(?!)))", RegexOptions.Compiled);                       // array/matrix format regex
+        Regex mt_re = new Regex(@"(?<head>(?:i[0-9]{1,2}_[0-9]+(?:x[0-9]*)? *(?:, i[0-9]{1,2}_[0-9]+ )?)):\s*(?:(?<open>{)(?<data>[^{}]*))+(?:(?<-open>})\s*)+(?(open)(?!))", RegexOptions.Compiled);                       // array/matrix format regex
+
         byte? getTypeNum(string typeStr)
         {
             switch (typeStr)
@@ -514,7 +529,7 @@ namespace usart
 
             List<byte> pac = new List<byte>(_HEADER);
             byte pactype = (byte)PAC_type.ar;
-            byte dtype = (byte)HMI_type.int8;
+            byte dtype = (byte)HMI_type.i8;
             UInt16 len = (UInt16)(data.Length & UInt16.MaxValue);
             List<byte> payload = new List<byte>();
             payload.Add(pactype);
@@ -533,7 +548,7 @@ namespace usart
         {
             List<byte> pac = new List<byte>(_HEADER);
             byte pactype = (byte)PAC_type.ar;
-            byte dtype = (byte)HMI_type.uint8;
+            byte dtype = (byte)HMI_type.ui8;
             UInt16 len = (UInt16)(data.Length & UInt16.MaxValue);
             List<byte> payload = new List<byte>();
             payload.Add(pactype);
@@ -552,7 +567,7 @@ namespace usart
         {
             List<byte> pac = new List<byte>(_HEADER);
             byte pactype = (byte)PAC_type.ar;
-            byte dtype = (byte)HMI_type.uint8;
+            byte dtype = (byte)HMI_type.ui8;
             UInt16 len = (UInt16)(data.Length & UInt16.MaxValue);
             List<byte> payload = new List<byte>();
             payload.Add(pactype);
@@ -572,7 +587,7 @@ namespace usart
         {
             List<byte> pac = new List<byte>(_HEADER);
             byte pactype = (byte)PAC_type.ar;
-            byte dtype = (byte)HMI_type.uint16;
+            byte dtype = (byte)HMI_type.ui16;
             UInt16 len = (UInt16)(data.Length & UInt16.MaxValue);
             List<byte> payload = new List<byte>();
             payload.Add(pactype);
@@ -591,7 +606,7 @@ namespace usart
         {
             List<byte> pac = new List<byte>(_HEADER);
             byte pactype = (byte)PAC_type.ar;
-            byte dtype = (byte)HMI_type.int32;
+            byte dtype = (byte)HMI_type.i32;
             UInt16 len = (UInt16)(data.Length & UInt16.MaxValue);
             List<byte> payload = new List<byte>();
             payload.Add(pactype);
@@ -610,7 +625,7 @@ namespace usart
         {
             List<byte> pac = new List<byte>(_HEADER);
             byte pactype = (byte)PAC_type.ar;
-            byte dtype = (byte)HMI_type.uint32;
+            byte dtype = (byte)HMI_type.ui32;
             UInt16 len = (UInt16)(data.Length & UInt16.MaxValue);
             List<byte> payload = new List<byte>();
             payload.Add(pactype);
@@ -629,7 +644,7 @@ namespace usart
         {
             List<byte> pac = new List<byte>(_HEADER);
             byte pactype = (byte)PAC_type.ar;
-            byte dtype = (byte)HMI_type.int64;
+            byte dtype = (byte)HMI_type.i64;
             UInt16 len = (UInt16)(data.Length & UInt16.MaxValue);
             List<byte> payload = new List<byte>();
             payload.Add(pactype);
@@ -648,7 +663,7 @@ namespace usart
         {
             List<byte> pac = new List<byte>(_HEADER);
             byte pactype = (byte)PAC_type.ar;
-            byte dtype = (byte)HMI_type.uint64;
+            byte dtype = (byte)HMI_type.ui64;
             UInt16 len = (UInt16)(data.Length & UInt16.MaxValue);
             List<byte> payload = new List<byte>();
             payload.Add(pactype);
@@ -667,7 +682,7 @@ namespace usart
         {
             List<byte> pac = new List<byte>(_HEADER);
             byte pactype = (byte)PAC_type.ar;
-            byte dtype = (byte)HMI_type.float32;
+            byte dtype = (byte)HMI_type.f32;
             UInt16 len = (UInt16)(data.Length & UInt16.MaxValue);
             List<byte> payload = new List<byte>();
             payload.Add(pactype);
@@ -686,7 +701,7 @@ namespace usart
         {
             List<byte> pac = new List<byte>(_HEADER);
             byte pactype = (byte)PAC_type.ar;
-            byte dtype = (byte)HMI_type.float64;
+            byte dtype = (byte)HMI_type.f64;
             UInt16 len = (UInt16)(data.Length & UInt16.MaxValue);
             List<byte> payload = new List<byte>();
             payload.Add(pactype);
@@ -759,18 +774,110 @@ namespace usart
         //{
 
         //} 
+
+        public HMI_format[] split(string text)
+        {
+            if (text == string.Empty)
+                return new HMI_format[] { };
+            List<HMI_format> ret = new List<HMI_format>();
+            List<Match> matches = new List<Match>();
+            var mt_mats = mt_re.Matches(text);
+            string st_text = text;
+            foreach (Match mat in mt_mats)
+            {
+                st_text.Replace(mat.Value, new string(' ', mat.Value.Length));
+                matches.Add(mat);
+            }
+            var st_mat = mt_re.Matches(st_text);
+            var st_child = new List<Match>();
+            if (st_mat.Count > 0)
+            {
+
+                foreach (Match st in st_mat)
+                {
+
+                    var children = matches.FindAll(x => x.Index > st.Index && x.Index < (st.Index + st.Value.Length));
+                    st_child.AddRange(children);
+                    ret.Add(new HMI_format(PAC_type.st, st_mat[0], children.ToArray()));
+                }
+            }
+            var mts = matches.Except(st_child);
+            foreach (var mt in mts)
+            {
+                string header = mt.Groups[0].Value;
+                if (header.Contains("x"))
+                    ret.Add(new HMI_format(PAC_type.mt, mt, null));
+                else
+                    ret.Add(new HMI_format(PAC_type.ar, mt, null));
+            }
+            ret.Sort((x, y) => x.main_format.Index.CompareTo(y.main_format.Index));
+            return ret.ToArray();
+
+        }
+        public bool put(HMI_format format)
+        {
+            Regex num_re = new Regex(@"([0-9]+.?[0-9]*)");
+            string header = format.main_format.Groups[0].Value.Replace(":",string.Empty).Replace(" ",string.Empty);
+            string text_pac = format.main_format.Groups[1].Value.Replace(" ",string.Empty);
+            if (format.type == PAC_type.ar)
+            {
+                var type = header.Split('_')[0];
+                var length = header.Split('_')[1];
+                HMI_type hmi_type;
+                if (type[0] == 'f')
+                {
+                    hmi_type = (HMI_type)(7+int.Parse(type.Substring(1))/32);
+
+                }
+                else if(type[0]=='i')
+                {
+                    hmi_type = (HMI_type)(int)Math.Log(int.Parse(type.Substring(1)), 2);
+                }
+                else if(type.StartsWith("ui"))
+                {
+                    hmi_type=(HMI_type)(int)Math.Log(int.Parse(type.Substring(2)), 2);
+                }
+                else 
+                {
+                    return false;
+                }
+                var len = int.Parse(length);
+                var arr_s = text_pac.Replace("}", string.Empty).Split('{');
+                //foreach
+                //encodeAr2Pac(, (byte)hmi_type);
+            }
+            return true;
+        }
+
         public bool put(string text)
         {
             if (text == string.Empty)
                 return false;
             List<byte> pac = new List<byte>(_HEADER);
-            var mats = regex.Match(text);
-            
+            var mt_mats = mt_re.Matches(text);
+            string st_text = text;
+            foreach (Match mat in mt_mats)
+            {
+                st_text.Replace(mat.Value, new string(' ', mat.Value.Length));
+            }
+            var st_mats = mt_re.Matches(st_text);
+            if (st_mats.Count > 0)
+                foreach (string format in text.Split(new string[] { "\r\n\r\n" }, StringSplitOptions.None))
+                {
+
+                    foreach (Match mat in mt_mats)
+                    {
+                        //if (mat.)
+                }
+                    //text.Remove()
+
+
+            }
             return true;
         }
         public string get()
         {
-            string text="";
+            string text = "";
             return text;
         }
         public void clear()

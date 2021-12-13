@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.serialPort1 = new System.IO.Ports.SerialPort(this.components);
             this.comboPort = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -52,11 +53,14 @@
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             this.tabProgram = new System.Windows.Forms.TabPage();
+            this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.tabSetting = new System.Windows.Forms.TabPage();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
             this.label4 = new System.Windows.Forms.Label();
             this.RTerminal = new System.Windows.Forms.ComboBox();
-            this.progressBar1 = new System.Windows.Forms.ProgressBar();
+            this.helpProvider1 = new System.Windows.Forms.HelpProvider();
+            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.tabControl1.SuspendLayout();
             this.tabTerminal.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -68,6 +72,7 @@
             this.groupBox2.SuspendLayout();
             this.tabProgram.SuspendLayout();
             this.tabSetting.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.groupBox4.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -85,7 +90,7 @@
             this.comboPort.Font = new System.Drawing.Font("微軟正黑體", 9F);
             this.comboPort.FormattingEnabled = true;
             this.comboPort.Location = new System.Drawing.Point(46, 23);
-            this.comboPort.Margin = new System.Windows.Forms.Padding(2, 4, 20, 4);
+            this.comboPort.Margin = new System.Windows.Forms.Padding(2, 5, 20, 5);
             this.comboPort.Name = "comboPort";
             this.comboPort.Size = new System.Drawing.Size(114, 24);
             this.comboPort.TabIndex = 10;
@@ -115,7 +120,7 @@
             // 
             this.textBaud.Font = new System.Drawing.Font("微軟正黑體", 9.25F);
             this.textBaud.Location = new System.Drawing.Point(387, 23);
-            this.textBaud.Margin = new System.Windows.Forms.Padding(2, 4, 20, 4);
+            this.textBaud.Margin = new System.Windows.Forms.Padding(2, 5, 20, 5);
             this.textBaud.Name = "textBaud";
             this.textBaud.Size = new System.Drawing.Size(96, 24);
             this.textBaud.TabIndex = 4;
@@ -135,7 +140,7 @@
             // 
             this.textBit.Font = new System.Drawing.Font("微軟正黑體", 9.25F);
             this.textBit.Location = new System.Drawing.Point(582, 23);
-            this.textBit.Margin = new System.Windows.Forms.Padding(2, 4, 2, 4);
+            this.textBit.Margin = new System.Windows.Forms.Padding(2, 5, 2, 5);
             this.textBit.Name = "textBit";
             this.textBit.Size = new System.Drawing.Size(90, 24);
             this.textBit.TabIndex = 5;
@@ -147,7 +152,7 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.Terminal.Font = new System.Drawing.Font("微軟正黑體", 9F);
-            this.Terminal.Location = new System.Drawing.Point(4, 20);
+            this.Terminal.Location = new System.Drawing.Point(4, 21);
             this.Terminal.Margin = new System.Windows.Forms.Padding(1, 1, 1, 5);
             this.Terminal.Multiline = true;
             this.Terminal.Name = "Terminal";
@@ -161,7 +166,7 @@
             this.textBinary.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBinary.Font = new System.Drawing.Font("微軟正黑體", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.textBinary.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.textBinary.Location = new System.Drawing.Point(4, 18);
             this.textBinary.Margin = new System.Windows.Forms.Padding(1, 1, 1, 5);
             this.textBinary.Multiline = true;
@@ -169,6 +174,9 @@
             this.textBinary.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.textBinary.Size = new System.Drawing.Size(371, 385);
             this.textBinary.TabIndex = 7;
+            this.textBinary.Text = "i16_4 :\r\n    { 0, 1, 2, 3 }\r\n\r\ni16_1x4 :\r\n{\r\n    { 1, 2, 3 ,4 }\r\n}\r\n\r\ni16_4 , i16" +
+    "_4 :\r\n{\r\n    i16_4 :\r\n        { 2, 3,4, 5 }\r\n    i16_4 :\r\n        { 4, 5, 6, 7 }" +
+    "\r\n}\r\n\r\ni16_4 , i16_4 :\r\n{\r\n  \r\n}\r\n";
             // 
             // terminalClear
             // 
@@ -232,7 +240,7 @@
             this.COM.Location = new System.Drawing.Point(200, 21);
             this.COM.Margin = new System.Windows.Forms.Padding(20, 2, 20, 2);
             this.COM.Name = "COM";
-            this.COM.Size = new System.Drawing.Size(74, 28);
+            this.COM.Size = new System.Drawing.Size(74, 27);
             this.COM.TabIndex = 6;
             this.COM.Text = "OFF";
             this.COM.UseVisualStyleBackColor = true;
@@ -246,7 +254,7 @@
             this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl1.Font = new System.Drawing.Font("微軟正黑體", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
             this.tabControl1.Location = new System.Drawing.Point(0, 0);
-            this.tabControl1.Margin = new System.Windows.Forms.Padding(4);
+            this.tabControl1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.Padding = new System.Drawing.Point(10, 3);
             this.tabControl1.SelectedIndex = 0;
@@ -282,7 +290,7 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.groupBox1);
-            this.splitContainer1.Size = new System.Drawing.Size(899, 444);
+            this.splitContainer1.Size = new System.Drawing.Size(899, 443);
             this.splitContainer1.SplitterDistance = 516;
             this.splitContainer1.TabIndex = 14;
             // 
@@ -296,7 +304,7 @@
             this.groupBox3.Location = new System.Drawing.Point(0, 0);
             this.groupBox3.Margin = new System.Windows.Forms.Padding(2);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(516, 444);
+            this.groupBox3.Size = new System.Drawing.Size(516, 443);
             this.groupBox3.TabIndex = 13;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Terminal";
@@ -311,7 +319,7 @@
             this.groupBox1.Location = new System.Drawing.Point(0, 0);
             this.groupBox1.Margin = new System.Windows.Forms.Padding(2);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(379, 444);
+            this.groupBox1.Size = new System.Drawing.Size(379, 443);
             this.groupBox1.TabIndex = 11;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "ASAHMI";
@@ -369,18 +377,41 @@
             this.tabProgram.Text = "Program";
             this.tabProgram.UseVisualStyleBackColor = true;
             // 
+            // progressBar1
+            // 
+            this.progressBar1.Location = new System.Drawing.Point(223, 367);
+            this.progressBar1.Name = "progressBar1";
+            this.progressBar1.Size = new System.Drawing.Size(494, 23);
+            this.progressBar1.TabIndex = 0;
+            this.progressBar1.Value = 50;
+            // 
             // tabSetting
             // 
+            this.tabSetting.Controls.Add(this.pictureBox1);
             this.tabSetting.Controls.Add(this.groupBox4);
             this.tabSetting.Location = new System.Drawing.Point(4, 25);
-            this.tabSetting.Margin = new System.Windows.Forms.Padding(4);
+            this.tabSetting.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.tabSetting.Name = "tabSetting";
-            this.tabSetting.Padding = new System.Windows.Forms.Padding(4);
+            this.tabSetting.Padding = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.tabSetting.Size = new System.Drawing.Size(912, 523);
             this.tabSetting.TabIndex = 1;
             this.tabSetting.Text = "Setting";
             this.tabSetting.UseVisualStyleBackColor = true;
             this.tabSetting.Enter += new System.EventHandler(this.tabSetting_Enter);
+            // 
+            // pictureBox1
+            // 
+            this.pictureBox1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            this.pictureBox1.Cursor = System.Windows.Forms.Cursors.Help;
+            this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
+            this.pictureBox1.InitialImage = null;
+            this.pictureBox1.Location = new System.Drawing.Point(882, 0);
+            this.pictureBox1.Margin = new System.Windows.Forms.Padding(0);
+            this.pictureBox1.Name = "pictureBox1";
+            this.helpProvider1.SetShowHelp(this.pictureBox1, true);
+            this.pictureBox1.Size = new System.Drawing.Size(30, 30);
+            this.pictureBox1.TabIndex = 3;
+            this.pictureBox1.TabStop = false;
             // 
             // groupBox4
             // 
@@ -417,14 +448,6 @@
             this.RTerminal.TabIndex = 1;
             this.RTerminal.SelectedIndexChanged += new System.EventHandler(this.RTerminal_SelectedIndexChanged);
             // 
-            // progressBar1
-            // 
-            this.progressBar1.Location = new System.Drawing.Point(223, 367);
-            this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(494, 23);
-            this.progressBar1.TabIndex = 0;
-            this.progressBar1.Value = 50;
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
@@ -432,9 +455,10 @@
             this.ClientSize = new System.Drawing.Size(920, 552);
             this.Controls.Add(this.tabControl1);
             this.Font = new System.Drawing.Font("微軟正黑體", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.Margin = new System.Windows.Forms.Padding(4);
+            this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.MinimumSize = new System.Drawing.Size(745, 380);
             this.Name = "Form1";
+            this.helpProvider1.SetShowHelp(this, true);
             this.Text = "Agent";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.tabControl1.ResumeLayout(false);
@@ -452,6 +476,7 @@
             this.groupBox2.PerformLayout();
             this.tabProgram.ResumeLayout(false);
             this.tabSetting.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.groupBox4.ResumeLayout(false);
             this.groupBox4.PerformLayout();
             this.ResumeLayout(false);
@@ -488,6 +513,9 @@
         private System.Windows.Forms.TabPage tabProgram;
         private System.Windows.Forms.GroupBox groupBox4;
         private System.Windows.Forms.ProgressBar progressBar1;
+        private System.Windows.Forms.HelpProvider helpProvider1;
+        private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.ToolTip toolTip1;
     }
 }
 
