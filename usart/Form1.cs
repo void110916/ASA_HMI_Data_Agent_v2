@@ -21,7 +21,7 @@ namespace usart
             string[] coms = portSearch();
             foreach (string com in coms)
             {
-                if (portOn(com, 38400, 8))
+                if (portOn(com, 115200, 8))
                 {
                     break;
                 }
