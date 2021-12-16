@@ -12,21 +12,7 @@ namespace programmer
 {
     class Program
     {
-        static void info()
-        {
-            Console.Write("usage: asaloader [-h] [--lc LC] {prog,print-devices,pd,print-ports,pp} ...\r\n" +
-                "\r\n" +
-                "燒錄程式到ASA系列開發版。\r\n" +
-                "\r\n" +
-                "positional arguments:\r\n" +
-                "\tprog                燒入程式進入開發版。\r\n" +
-                "\tprint-devices (pd)  列出可用裝置。\r\n" +
-                "\tprint-ports (pp)    列出目前電腦上所有的串列埠。\r\n" +
-                "\r\n" +
-                "optional arguments:\r\n" +
-                "  -h, --help            show this help message and exit\r\n" +
-                "--lc LC               設置語言代碼。例如\"zh_TW\",\"en_US\"");
-        }
+        
         static Dictionary<string, dynamic>[] device_list = new Dictionary<string, dynamic>[]
         {
             new Dictionary<string,dynamic>
@@ -86,9 +72,10 @@ namespace programmer
         };
         static int Main(string[] args)
         {
+
             if (args.Length == 0)
             {
-                info();
+                print_help();
                 return 0;
             }
             else if (args[0] == "print-ports" || args[0] == "pp")
@@ -113,13 +100,35 @@ namespace programmer
                     Console.WriteLine($"  - {dev["name"],-20}{dev["dev_type"],-8}{dev["note"]}");
                 }
             }
+            else if (args[0] == "prog")
+            {
+
+            }
             else
-                info();
-            //#if DEBUG
+                print_help();
+#if DEBUG
             Console.ReadKey();
-            //#endif
+#endif
             return 0;
         }
+        static void print_help()
+        {
+            Console.Write("usage: asaloader [-h] [--lc LC] {prog,print-devices,pd,print-ports,pp} ...\r\n" +
+                "\r\n" +
+                "燒錄程式到ASA系列開發版。\r\n" +
+                "\r\n" +
+                "positional arguments:\r\n" +
+                "\tprog                燒入程式進入開發版。\r\n" +
+                "\tprint-devices (pd)  列出可用裝置。\r\n" +
+                "\tprint-ports (pp)    列出目前電腦上所有的串列埠。\r\n" +
+                "\r\n" +
+                "optional arguments:\r\n" +
+                "  -h, --help            show this help message and exit\r\n" +
+                "--lc LC               設置語言代碼。例如\"zh_TW\",\"en_US\"");
+        }
+        static void programming(string hex_file,string port,int baud=115200,int timeout=1,Action action=null)
+        {
 
+        }
     }
 }

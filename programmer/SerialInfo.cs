@@ -9,11 +9,14 @@ namespace programmer
 {
     class Serial_Info
     {
+        public static int TotolNum = 0;
+
         public string Caption;
         public string Manufact;
         public string DeviceID;
         private string RegPath;
         public string PortName;
+
         Serial_Info(string caption, string manufact, string deviceID, string regPath, string portName)
         {
             this.Caption = caption;
@@ -45,7 +48,7 @@ namespace programmer
                     serial_list.Add(new Serial_Info(s_Caption, s_Manufact, s_DeviceID, s_RegPath, s_PortName));
 
                 }
-                
+
             }
             return serial_list.ToArray();
         }
