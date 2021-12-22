@@ -5,27 +5,28 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO.Ports;
 using System.IO;
+using System.Threading;
 namespace programmer
 {
-    
+
     class Loader
     {
-        int device_type;
-        string device_name;
+        public int device_type;
+        public string device_name;
 
-        bool is_flash_prog;
+        public bool is_flash_prog;
         //bool is_ext_flash_prog;
         //bool is_ext_to_int;
         //bool is_eeprom_prog;
-        bool is_go_app;
+        public bool is_go_app;
 
-        string flash_file;
+        public string flash_file;
         //string ext_flash_file;
         //string eep_file;
-        UInt16 go_app_delay;
+        public UInt16 go_app_delay;
         SerialPort port;
         // 燒錄狀態
-        enum Stage : int
+        public enum Stage : int
         {
             PREPARE = 0,
             FLASH_PROG = 1,
@@ -38,13 +39,13 @@ namespace programmer
         Stage stage = Stage.PREPARE;
         int totle_step;
         int cur_step;
-        List<byte> flash_pages = new List<byte>();
+        List<Section> flash_pages = new List<Section>();
         int flash_page_idx;
 
         int flash_size = 0;
         float prog_time;
-
-        Loader(SerialPort serial, int device_type = 0, bool is_flash_prog = false, bool is_go_app = false, string flash_file = "", UInt16 go_app_delay = 0)
+        int protocol_version;
+        public Loader(SerialPort serial, int device_type = 0, bool is_flash_prog = false, bool is_go_app = false, string flash_file = "", UInt16 go_app_delay = 0)
         {
             this.port = serial;
             this.device_type = device_type;
@@ -55,7 +56,18 @@ namespace programmer
 
 
         }
-
+        public Loader(SerialPort serial)
+        {
+            this.port = serial;
+        }
+        /// <summary>
+        /// 燒錄前準備函式
+        /// 
+        /// 1. 檢查參數  
+        /// 2. 檢查flash、eeprom燒錄檔案  
+        /// 3. 偵測裝置  
+        /// 4. 生成動作列表
+        /// </summary>
         void prepare()
         {
             if (this.device_type > Serial_Info.TotolNum)
@@ -68,28 +80,244 @@ namespace programmer
                     throw new GoAppDelayValueError(this.go_app_delay);
             prepare_flash();
             prepare_device();
+
+            // stage
+            var stg_list = new List<Stage>();
+            if (this.is_flash_prog)
+            {
+                stg_list.Add(Stage.PREPARE);
+                this.totle_step += this.flash_pages.Count;
+            }
+            stg_list.Add(Stage.END);
+            this.totle_step++;
+
+            // prog time
+            switch (this.device_type)
+            {
+                case 1:
+                case 2:
+                    this.prog_time = flash_pages.Count * 0.047f + 0.23f;
+                    break;
+                case 3:
+                    // asa_m128_v2
+                    this.prog_time = flash_pages.Count * 0.047f + 0.23f;
+                    break;
+                case 4:
+                    //asa_m3_v1
+                    this.prog_time = flash_pages.Count * 0.5f + 0.23f;
+                    break;
+                case 5:
+                    //asa_m4_v1
+                    this.prog_time = flash_pages.Count * 0.5f + 0.23f + 3;
+                    break;
+            }
+
         }
+
+        /// <summary>
+        /// 處理flash燒錄檔
+        ///
+        ///Raises:
+        ///    exceptions.FlashIsNotIhexError: flash 燒錄檔非 intel hex 格式
+        ///
+        ///處理事務：
+        ///    1. 偵測是否為 intel hex 格式
+        ///    2. 取出資料
+        ///    3. padding_space
+        ///    4. cut_to_pages
+        /// </summary>
         async void prepare_flash()
         {
-            if(this.is_flash_prog)
+            if (this.is_flash_prog)
             {
                 Ihex ihex = new Ihex(this.flash_file);
                 try
                 {
-                    var blocks= await ihex.parse();
+                    var blocks = await ihex.parse();
                     this.flash_size = blocks.Select(x => x.data.Length).Sum();
-                    
+                    blocks = ihex.padding_space(blocks, 256, 0xff);
+                    this.flash_pages = ihex.cut_to_pages(blocks, 256);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
-                    throw new FlashIsNotIhexError(this.flash_file);
+                    throw new FlashIsNotIhexError(this.flash_file, e);
                 }
             }
         }
+        /// <summary>
+        /// 檢查裝置是否吻合設定的裝置號碼
+        /// Raises:
+        ///     exceptions.ComuError: 無法通訊
+        ///     exceptions.CheckDeviceError: 裝置比對錯誤
+        /// </summary>
         void prepare_device()
         {
+            int version = 0;
+            CMD cmd = new CMD(port);
+            var res = cmd.chk_protocal(out version);
+            int detected_device = 0;
+            if (res && version == 1)
+            {
+                // protocol v1 dosn't have "chk_device" command
+                // m128_v1 or m128_v2
+                // use m128_v2 for default
+                detected_device = 2;
+            }
+            else if (res && version == 2)
+            {
+                res = cmd.v2_prog_chk_device(out detected_device);
+                if (res)
+                    throw new ComuError();
+            }
+            else
+                throw new ComuError();
+
+            // auto detect device
+            if (Program.device_list[device_type]["protocol_version"] == 0)
+                this.device_type = detected_device;
+
+            // check for protocol v1 (e.g. m128_v1, m128_v2)
+            else if (Program.device_list[device_type]["protocol_version"] == 1)
+            {
+                if (this.device_type != 2 || this.device_type != 1)
+                    throw new CheckDeviceError(this.device_type, detected_device);
+            }
+
+            // check for protocol v2 (e.g. m128_v3, m3_v1)
+            else if (Program.device_list[device_type]["protocol_version"] == 2)
+            {
+                if (this.device_type != detected_device)
+                    throw new CheckDeviceError(this.device_type, detected_device);
+            }
+
+            this.protocol_version = Program.device_list[device_type]["protocol_version"];
+            this.device_name = Program.device_list[device_type]["name"];
 
         }
+    }
+    public class CMD
+    {
+        SerialPort port;
+        readonly string HEADER = Encoding.ASCII.GetString(new byte[] { 0xfc, 0xfc, 0xfc });
+        readonly byte TOCKEN = 0x01;
+        public class COMMAND
+        {
+            public CommanderHeader command;
+            public byte[] data;
+            public COMMAND(CommanderHeader command, byte[] data)
+            {
+                this.command = command;
+                this.data = data;
+            }
+        }
+        public CMD(SerialPort port)
+        {
+            this.port = port;
+        }
+        public bool chk_protocal(out int version)
+        {
+            version = 0;
+            put_packet(CommanderHeader.CHK_PROTOCOL, Encoding.ASCII.GetBytes("test"));
+            Thread.Sleep(10);
+            var rep = get_packet();
+
+            if (rep == null)
+                return false;
+            if (rep.command == CommanderHeader.ACK1 & rep.data.Equals(Encoding.ASCII.GetBytes("OK!!")))
+            {
+                version = 1;
+                return true;
+            }
+            else if (rep.command == CommanderHeader.CHK_PROTOCOL & rep.data[0] == 0)
+            {
+                version = rep.data[1];
+                return true;
+            }
+            else
+                return false;
+        }
+        public bool v2_prog_chk_device(out int version)
+        {
+            version = 0;
+            put_packet(CommanderHeader.PROG_CHK_DEVICE, new byte[] { });
+            var rep = get_packet();
+            if (rep.command == CommanderHeader.PROG_CHK_DEVICE && rep.data[0] == 0)
+            {
+                version = rep.data[1];
+                return true;
+            }
+            else
+                return false;
+
+        }
+        void put_packet(CommanderHeader command, byte[] data)
+        {
+            this.port.Encoding = Encoding.ASCII;
+            this.port.DiscardInBuffer();
+            var pac = new List<byte>();
+            pac.Add((byte)command);
+            pac.AddRange(data);
+            this.port.Write(pac.ToArray(), 0, pac.Count);
+        }
+        COMMAND get_packet()
+        {
+            COMMAND packet = null;
+            int pac_len = 0;
+            CommanderHeader? command = null;
+            var ch = port.ReadExisting();
+            if (ch.Length == 0)
+                return packet;
+            else if (ch.Substring(0, 3) == HEADER)
+            {
+                command = (CommanderHeader)ch[3];
+            }
+
+            if (ch[4] != TOCKEN)
+                return null;
+            else
+            {
+                pac_len = (ch[5] >> 8) + ch[6];
+                byte[] data = Encoding.ASCII.GetBytes(ch.Substring(7, pac_len));
+                var sum = data.Sum(x => x);
+                if (sum % 256 != ch[ch.Length - 1])
+                    return null;
+                else
+                    packet = new COMMAND(command.Value, data);
+            }
+            return packet;
+        }
+    }
+    public enum CommanderHeader : byte
+    {
+        // for both version 1 and version 2
+        CHK_PROTOCOL = 0xFA,
+
+        // for version 1 protocol supproted device such as
+        //  asa_m128_v1
+        //  asa_m128_v2
+        ACK1 = 0xFB,
+        DATA = 0xFC,
+        ACK2 = 0xFD,
+
+        // for version 2 protocol supproted device such as
+        //  asa_m128_v3
+        //  asa_m3_v1
+        PROG_CHK_DEVICE = 0x02,
+        PROG_END = 0x03,
+        PROG_END_AND_GO_APP = 0x04,
+        PROG_SET_GO_APP_DELAY = 0x05,
+
+
+        PROG_EXT_TO_INT = 0x06,
+
+        FLASH_SET_PGSZ = 0x10,
+        FLASH_GET_PGSZ = 0x11,
+        FLASH_WRITE = 0x12,
+        FLASH_READ = 0x13,
+        FLASH_VARIFY = 0x14,
+        FLASH_EARSE_SECTOR = 0x15,
+        FLASH_EARSE_ALL = 0x16
+
     }
     public class LoaderException : Exception
     {
@@ -99,14 +327,30 @@ namespace programmer
     }
     public class DeviceTypeError : Exception
     {
+        string message;
         public DeviceTypeError() : base() { }
         public DeviceTypeError(string message) : base(message) { }
         public DeviceTypeError(string message, Exception e) : base(message, e) { }
     }
-    public class GoAppDelayValueError:Exception
+    public class GoAppDelayValueError : Exception
     {
-        public GoAppDelayValueError() : base(){ }
+        public GoAppDelayValueError() : base() { }
         public GoAppDelayValueError(int message) : base($"Value { message} is over 65535") { }
-        public GoAppDelayValueError(int message,Exception e) : base($"Value { message} is over 65535", e) { }
+        public GoAppDelayValueError(int message, Exception e) : base($"Value { message} is over 65535", e) { }
+    }
+    public class ComuError : Exception
+    {
+        public ComuError() : base() { }
+
+    }
+    public class CheckDeviceError : Exception
+    {
+        public int in_dev;
+        public int real_dev;
+        public CheckDeviceError(int type1, int type2) : base($"device type {type1} is not equals to detect device type {type2}")
+        {
+            this.in_dev = type1;
+            this.real_dev = type2;
+        }
     }
 }

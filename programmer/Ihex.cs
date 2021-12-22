@@ -9,7 +9,7 @@ namespace programmer
 {
     class Ihex
     {
-        
+
         string filename;
         public Ihex(string filename)
         {
@@ -118,32 +118,76 @@ namespace programmer
         //    if (line.Length < 10)
         //        throw new IhexIndexFormatError(filename);
         //}
-        public List<Section> padding_space(List<Section> sections,int page_size,byte space_data)
+
+        /// <summary>
+        /// Padding each data block with `space_data` to let block size fit pgsz * N.
+        /// </summary>
+        /// <param name="sections">response from `parse`</param>
+        /// <param name="page_size">page size, e.g. 256, 512.</param>
+        /// <param name="space_data">the byte data used to padding. e.g. 0xff</param>
+        /// <returns></returns>
+        public List<Section> padding_space(List<Section> sections, uint page_size, byte space_data)
         {
-            var new_section= sections.Select(sect =>
-            {
-                var sect_addr = sect.address;
-                var sect_data = sect.data;
+            var new_section = sections.Select(sect =>
+             {
+                 var sect_addr = sect.address;
+                 var sect_data = sect.data;
 
-                // 起始位置若不是在 page_size * N 上
-                // 往前補 0XFF
-                if(sect_addr%page_size!=0)
-                {
+                 // 起始位置若不是在 page_size * N 上
+                 // 往前補 0XFF
+                 if (sect_addr % page_size != 0)
+                 {
+                     uint n = sect_addr / page_size;
+                     uint l = sect_addr / page_size * n;
+                     sect_addr = page_size * n;
+                     var ff = Enumerable.Repeat((byte)0xFF, (int)l).ToArray();
+                     sect_data = ff.Concat(sect_data).ToArray();
+                 }
 
-                }
-
-                // 結束位置 +1 若不是在 page_size * N 上
-                // 往後補 0XFF
-                if (sect_addr % page_size != 0)
-                {
-
-                }
-
-                return sect;
-            });
+                 // 結束位置 +1 若不是在 page_size * N 上
+                 // 往後補 0XFF
+                 if ((sect_addr + sect_data.Length) % page_size != 0)
+                 {
+                     uint n = (sect_addr + (uint)sect_data.Length) / page_size;
+                     uint l = page_size * (n + 1) - (sect_addr + (uint)sect_data.Length);
+                     var ff = Enumerable.Repeat((byte)0xff, (int)l).ToArray();
+                     sect_data = sect_data.Concat(ff).ToArray();
+                 }
+                 var new_sect = new Section { address = sect_addr, data = sect_data };
+                 return new_sect;
+             });
             return new_section.ToList();
         }
+        /// <summary>
+        /// Cut each data block to pages.
+        /// </summary>
+        /// <param name="sections">response from `padding_space`.</param>
+        /// <param name="page_size">page size, e.g. 256, 512.</param>
+        /// <returns></returns>
+        public List<Section> cut_to_pages(List<Section> sections, int page_size)
+        {
+            List<Section> pages = new List<Section>();
+            foreach (var section in sections)
+            {
+                var sect_addr = section.address;
+                var sect_data = section.data;
+                int page_len = sect_data.Length / page_size;
+                pages = new List<Section>(page_len);
+                for (uint i = 0; i < page_len; i++)
+                {
+                    pages.Add(new Section
+                    {
+                        address = sect_addr + i * (uint)page_size,
+                        data = sect_data.ToList().GetRange((int)i * page_size, page_size).ToArray()
+                    });
+                }
+
+            }
+            return pages;
+        }
     }
+
+
     public struct Section
     {
         public uint address;
