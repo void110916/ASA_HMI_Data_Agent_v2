@@ -71,10 +71,24 @@ namespace programmer
                 ["note"]=""
             }
          };
+        static string[] dynBar = { "-", "/", "|", @"\" };
         static Loader loader;
-        static int Main(string[] args)
+        static async Task<int> Main(string[] args)
         {
-            Argparse parser = new Argparse(args);
+            Argparse parser = new Argparse();
+            try
+            {
+                parser = new Argparse(args);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+#if DEBUG
+                Console.ReadKey();
+#endif
+                Environment.Exit(1);
+            }
+
             switch (parser.work)
             {
                 case Work.print_ports:
@@ -97,7 +111,14 @@ namespace programmer
                     }
                     break;
                 case Work.program:
-                    programming(parser);
+                    var idx = 0;
+                    var progress = new Progress<int>(prog =>
+                    {
+                        Console.Clear();
+
+                        Console.Write($"{prog,3}% {dynBar[idx++ % 4]}");
+                    });
+                    await programming(parser, progress);
                     break;
                 case Work.help:
                     print_help();
@@ -132,16 +153,19 @@ namespace programmer
 
 
         }
-        static void programming(Argparse args)
+        static async Task programming(Argparse args, IProgress<int> progress)
         {
-            SerialPort port = new SerialPort(args.port, 115200); ;
+            SerialPort port = new SerialPort(args.port, 115200);
             try
             {
                 port.Open();
             }
-            catch
+            catch (Exception e)
             {
-                Console.WriteLine($"ERROR: port {args.port} has been opened by another application.");
+                Console.WriteLine(e.Message);
+#if DEBUG
+                Console.ReadKey();
+#endif
                 Environment.Exit(1);
             }
 
@@ -152,25 +176,32 @@ namespace programmer
             else
                 is_flash_prog = true;
 
-            Serial_Info.Search();
+            //Serial_Info.Search();
             int device_type = device_list[args.device]["dev_type"];
+            var loader = new Loader(port, device_type: device_type, is_flash_prog: is_flash_prog, is_go_app: args.is_go_app,
+                                                             flash_file: args.flash_file, go_app_delay: args.go_app_delay);
             try
             {
-                loader = new Loader(port,device_type:device_type, is_flash_prog: is_flash_prog, is_go_app: args.is_go_app,
-                                                flash_file: args.flash_file, go_app_delay: args.go_app_delay);
+                await loader.prepare(progress);
             }
             catch (ComuError)
             {
                 Console.WriteLine("ERROR: Can't communicate with the device.");
                 Console.WriteLine("       Please check the comport and the device.");
+#if DEBUG
+                Console.ReadKey();
+#endif
                 Environment.Exit(1);
             }
             catch (CheckDeviceError e)
             {
-                
+
                 Console.WriteLine("ERROR: Device is not match.");
                 Console.WriteLine($"       Assigned device is {device_list[e.in_dev]["name"]}");
                 Console.WriteLine($"       Detected device is {device_list[e.real_dev]["name"]}");
+#if DEBUG
+                Console.ReadKey();
+#endif
                 Environment.Exit(1);
             }
 
@@ -191,6 +222,7 @@ namespace programmer
         public string port;
         public bool is_go_app = false;
         public UInt16 go_app_delay = 5000;
+        public Argparse() { }
         public Argparse(string[] arg)
         {
             this.work = Work.help;
@@ -229,7 +261,11 @@ namespace programmer
                             break;
                         case "-f":
                         case "--flash":
-                            this.flash_file = arg[++i];
+                            var file = arg[++i];
+                            if (File.Exists(file) && file.EndsWith(".hex"))
+                                this.flash_file = file;
+                            else
+                                throw new FileNotFoundException($"Cannot find file {file}");
                             break;
                         case "-a":
                         case "--after-prog-go-app":

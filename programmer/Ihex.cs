@@ -17,18 +17,26 @@ namespace programmer
 
         }
 
-        public async Task<List<Section>> parse()
+        public async Task<List<Section>> parse(IProgress<int> progress)
         {
             List<Section> sections = new List<Section>();
             bool eof_flag = false;
-            UInt32 sum = 0;
-            using (var sr = new StreamReader(this.filename))
+            int sr_len = 0;
+            using (var sr = new StreamReader(this.filename, Encoding.ASCII))
+            {
+                while (await sr.ReadLineAsync() != null)
+                {
+                    sr_len++;
+                }
+            }
+            int sr_idx = 0;
+            using (var sr = new StreamReader(this.filename, Encoding.ASCII))
             {
                 string line;
                 int s_i = 0;//sections index
                 UInt16 ext_addr = 0;
 
-                while ((line = await sr.ReadLineAsync()) != string.Empty)
+                while ((line = await sr.ReadLineAsync()) != null)
                 {
                     if (line.Length < 10)
                         throw new IhexIndexFormatError(filename);
@@ -37,25 +45,31 @@ namespace programmer
                     UInt16 reclen = UInt16.Parse(line.Substring(1, 2), System.Globalization.NumberStyles.HexNumber);
                     UInt32 address = UInt32.Parse(line.Substring(3, 4), System.Globalization.NumberStyles.HexNumber);
                     UInt16 content_type = UInt16.Parse(line.Substring(7, 2), System.Globalization.NumberStyles.HexNumber);
-                    UInt16 chksum = UInt16.Parse(line.Substring(line.Length - 3), System.Globalization.NumberStyles.HexNumber);
-                    sum = reclen + (address >> 16) + address + content_type + chksum;
-                    byte[] data = new byte[reclen * 2];
+                    UInt16 chksum = UInt16.Parse(line.Substring(line.Length - 2), System.Globalization.NumberStyles.HexNumber);
+                    UInt32 sum = reclen + (address >> 8) + (address & byte.MaxValue) + content_type + chksum;
+                    byte[] data = new byte[reclen];
                     // check record length and aprse data
                     if (reclen != 0)
                     {
-                        if (line.Length == 12 + reclen * 2)
+                        if (line.Length == 11 + reclen * 2)
                         {
-                            for (int i = 0; i < reclen; i += 2)
+                            for (int i = 0; i < reclen; i++)
                             {
-                                data[i] = byte.Parse(line.Substring(9 + i, 2), System.Globalization.NumberStyles.HexNumber);
+                                var s = line.Substring(9 + i * 2, 2);
+
+                                data[i] = Convert.ToByte(s, 16);//byte.Parse(s, System.Globalization.NumberStyles.HexNumber);
                                 sum += data[i];
                             }
+                            if ((sum & byte.MaxValue) != 0)
+                                throw new IhexFormatError(filename);
                         }
                         else
                             throw new IhexFormatError(filename);
                     }
                     else
                         data = new byte[0];
+
+                    progress.Report(sr_idx++ * 100 / sr_len);
                     if (content_type == 0)
                     {     // data
                         if (s_i == 0)
@@ -94,7 +108,101 @@ namespace programmer
 
                 }
             }
-            if (eof_flag == false || ((sum & UInt16.MaxValue) != 0))
+            if (eof_flag == false)
+                throw new IhexFormatError(filename);
+            return sections;
+        }
+        public List<Section> parse()
+        {
+            List<Section> sections = new List<Section>();
+            bool eof_flag = false;
+            int sr_len = 0;
+            using (var sr = new StreamReader(this.filename, Encoding.ASCII))
+            {
+                while (sr.ReadLine() != null)
+                {
+                    sr_len++;
+                }
+            }
+            int sr_idx = 0;
+            using (var sr = new StreamReader(this.filename, Encoding.ASCII))
+            {
+                string line;
+                int s_i = 0;//sections index
+                ushort ext_addr = 0;
+
+                while ((line = sr.ReadLine()) != null)
+                {
+                    if (line.Length < 10)
+                        throw new IhexIndexFormatError(filename);
+                    if (line[0] != ':')
+                        throw new IhexFormatError(filename);
+                    UInt16 reclen = UInt16.Parse(line.Substring(1, 2), System.Globalization.NumberStyles.HexNumber);
+                    UInt32 address = UInt32.Parse(line.Substring(3, 4), System.Globalization.NumberStyles.HexNumber);
+                    UInt16 content_type = UInt16.Parse(line.Substring(7, 2), System.Globalization.NumberStyles.HexNumber);
+                    UInt16 chksum = UInt16.Parse(line.Substring(line.Length - 2), System.Globalization.NumberStyles.HexNumber);
+                    UInt32 sum = reclen + (address >> 8) + (address & byte.MaxValue) + content_type + chksum;
+                    byte[] data = new byte[reclen];
+                    // check record length and aprse data
+                    if (reclen != 0)
+                    {
+                        if (line.Length == 11 + reclen * 2)
+                        {
+                            for (int i = 0; i < reclen; i++)
+                            {
+                                var s = line.Substring(9 + i * 2, 2);
+
+                                data[i] = Convert.ToByte(s, 16);//byte.Parse(s, System.Globalization.NumberStyles.HexNumber);
+                                sum += data[i];
+                            }
+                            if ((sum & byte.MaxValue) != 0)
+                                throw new IhexFormatError(filename);
+                        }
+                        else
+                            throw new IhexFormatError(filename);
+                    }
+                    else
+                        data = new byte[0];
+
+                    if (content_type == 0)
+                    {     // data
+                        if (s_i == 0)
+                        {
+                            sections.Add(new Section { address = address, data = data });
+                            s_i++;
+                        }
+                        else if ((ext_addr << 16) + address == sections[s_i - 1].address + sections[s_i - 1].data.Length)
+                            sections[s_i - 1] = new Section { address = sections[s_i - 1].address, data = sections[s_i - 1].data.Concat(data).ToArray() };
+                        else
+                        {
+                            sections.Add(new Section { address = (uint)(ext_addr << 16) + address, data = data });
+                            s_i++;
+                        }
+                    }
+                    else if (content_type == 1)
+                    {
+                        // End Of File
+                        if (address == 0)
+                            eof_flag = true;
+                        else
+                            throw new IhexFormatError(filename);
+                    }
+                    else if (content_type == 2)
+                        //Extended Segment Address
+                        continue;
+                    else if (content_type == 3)
+                        //Start Segment Address
+                        continue;
+                    else if (content_type == 4)
+                        //Extended Linear Address
+                        ext_addr = UInt16.Parse(line.Substring(9, 4), System.Globalization.NumberStyles.HexNumber);
+                    else if (content_type == 5)
+                        //Start Liner Address
+                        continue;
+
+                }
+            }
+            if (eof_flag == false)
                 throw new IhexFormatError(filename);
             return sections;
         }
@@ -126,7 +234,7 @@ namespace programmer
         /// <param name="page_size">page size, e.g. 256, 512.</param>
         /// <param name="space_data">the byte data used to padding. e.g. 0xff</param>
         /// <returns></returns>
-        public List<Section> padding_space(List<Section> sections, uint page_size, byte space_data)
+        public static List<Section> padding_space(List<Section> sections, uint page_size, byte space_data)
         {
             var new_section = sections.Select(sect =>
              {
@@ -138,7 +246,7 @@ namespace programmer
                  if (sect_addr % page_size != 0)
                  {
                      uint n = sect_addr / page_size;
-                     uint l = sect_addr / page_size * n;
+                     uint l = sect_addr - page_size * n;
                      sect_addr = page_size * n;
                      var ff = Enumerable.Repeat((byte)0xFF, (int)l).ToArray();
                      sect_data = ff.Concat(sect_data).ToArray();
@@ -164,15 +272,16 @@ namespace programmer
         /// <param name="sections">response from `padding_space`.</param>
         /// <param name="page_size">page size, e.g. 256, 512.</param>
         /// <returns></returns>
-        public List<Section> cut_to_pages(List<Section> sections, int page_size)
+        public static List<Section> cut_to_pages(List<Section> sections, int page_size)
         {
             List<Section> pages = new List<Section>();
+
             foreach (var section in sections)
             {
                 var sect_addr = section.address;
                 var sect_data = section.data;
                 int page_len = sect_data.Length / page_size;
-                pages = new List<Section>(page_len);
+                pages.Capacity+= page_len;
                 for (uint i = 0; i < page_len; i++)
                 {
                     pages.Add(new Section
@@ -184,7 +293,9 @@ namespace programmer
 
             }
             return pages;
+
         }
+
     }
 
 
@@ -197,9 +308,22 @@ namespace programmer
             this.address = address;
             this.data = data;
         }
+        public override bool Equals(Object obj)
+        {
+            if ((obj == null) || !this.GetType().Equals(obj.GetType()))
+            {
+                return false;
+            }
+            else
+            {
+                Section p = (Section)obj;
+                return (this.address == p.address) && (this.data.SequenceEqual(p.data));
+            }
+        }
     }
     public class IhexIndexFormatError : Exception
     {
+        string filename;
         public IhexIndexFormatError() : base() { }
         public IhexIndexFormatError(string message) : base(message) { }
         public IhexIndexFormatError(string message, Exception e) : base(message, e) { }

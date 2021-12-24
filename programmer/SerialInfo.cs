@@ -46,7 +46,7 @@ namespace programmer
                     if (s32_Pos > 0) // remove COM port from description
                         s_Caption = s_Caption.Substring(0, s32_Pos);
                     serial_list.Add(new Serial_Info(s_Caption, s_Manufact, s_DeviceID, s_RegPath, s_PortName));
-
+                    TotolNum++;
                 }
 
             }

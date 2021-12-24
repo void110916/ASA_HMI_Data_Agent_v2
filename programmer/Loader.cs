@@ -55,6 +55,8 @@ namespace programmer
             this.go_app_delay = go_app_delay;
 
 
+
+
         }
         public Loader(SerialPort serial)
         {
@@ -68,17 +70,19 @@ namespace programmer
         /// 3. 偵測裝置  
         /// 4. 生成動作列表
         /// </summary>
-        void prepare()
+        public async Task prepare(IProgress<int> progress)
         {
-            if (this.device_type > Serial_Info.TotolNum)
+            if (this.device_type > Program.device_list.Length)
                 throw new DeviceTypeError(this.device_type.ToString());
             if (this.is_flash_prog)
                 if (!File.Exists(this.flash_file))
                     throw new FileNotFoundException();
             if (this.is_go_app)
-                if (go_app_delay > 65535)
+                if (go_app_delay > UInt16.MaxValue)
                     throw new GoAppDelayValueError(this.go_app_delay);
-            prepare_flash();
+            await prepare_flash(progress);
+
+
             prepare_device();
 
             // stage
@@ -126,17 +130,17 @@ namespace programmer
         ///    3. padding_space
         ///    4. cut_to_pages
         /// </summary>
-        async void prepare_flash()
+        async Task prepare_flash(IProgress<int> progress)
         {
             if (this.is_flash_prog)
             {
                 Ihex ihex = new Ihex(this.flash_file);
                 try
                 {
-                    var blocks = await ihex.parse();
+                    var blocks = await ihex.parse(progress);
                     this.flash_size = blocks.Select(x => x.data.Length).Sum();
-                    blocks = ihex.padding_space(blocks, 256, 0xff);
-                    this.flash_pages = ihex.cut_to_pages(blocks, 256);
+                    blocks = Ihex.padding_space(blocks, 256, 0xff);
+                    this.flash_pages = Ihex.cut_to_pages(blocks, 256);
                 }
                 catch (Exception e)
                 {
