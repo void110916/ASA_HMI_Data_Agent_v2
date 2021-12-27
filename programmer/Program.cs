@@ -114,8 +114,9 @@ namespace programmer
                     var idx = 0;
                     var progress = new Progress<int>(prog =>
                     {
-                        Console.Clear();
-
+                        Console.SetCursorPosition(0, Console.CursorTop - 1);
+                        Console.Write(new string(' ', Console.BufferWidth));
+                        Console.SetCursorPosition(0, Console.CursorTop - 1);
                         Console.Write($"{prog,3}% {dynBar[idx++ % 4]}");
                     });
                     await programming(parser, progress);
@@ -183,6 +184,7 @@ namespace programmer
             try
             {
                 await loader.prepare(progress);
+                await loader.loading(progress);
             }
             catch (ComuError)
             {

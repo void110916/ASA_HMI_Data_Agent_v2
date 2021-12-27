@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO.Ports;
 
 namespace programmer
 {
@@ -130,14 +131,49 @@ namespace programmer
                 is_true = test_ihex_cut_1();
                 if (!is_true)
                     Console.WriteLine("cut error");
-                Console.WriteLine("finish test");
+                Console.WriteLine("finish ihex test");
                 Console.ReadKey();
                 return 0;
 
             }
 
+        }
 
+        class CMDDebug : CMD
+        {
+            public CMDDebug(SerialPort serialPort) : base(serialPort) { }
+            public CMDDebug() : base() { }
+            public byte[] test_encode(CommanderHeader command, byte[] data) { return base.encode(command, data); }
+            public bool test_decode()
+            {
+                var raw = new byte[] { 0xfc, 0xfc, 0xfc, 0xfa, 0x01, 0x00, 0x04, (byte)'t', (byte)'e', (byte)'s', (byte)'t', 0xc0 };
+                var predict = new COMMAND(CommanderHeader.CHK_PROTOCOL, new byte[] { (byte)'t', (byte)'e', (byte)'s', (byte)'t' });
+                var real = base.decode(base.encoder.GetString(raw));
+                return predict.Equals(real);
+            }
 
+            public bool test_encode()
+            {
+                var predict = new byte[] { 0xfc, 0xfc, 0xfc, 0xfa, 0x01, 0x00, 0x04, (byte)'t', (byte)'e', (byte)'s', (byte)'t', 0xc0 };
+                var pac = new COMMAND(CommanderHeader.CHK_PROTOCOL, new byte[] { (byte)'t', (byte)'e', (byte)'s', (byte)'t' });
+                var real = base.encode(pac.command, pac.data);
+                return predict.SequenceEqual(real);
+            }
+
+            static int Main(string[] args)
+            {
+                CMDDebug bug = new CMDDebug();
+                var is_right = bug.test_decode();
+                if (!is_right)
+                    Console.WriteLine("decode error");
+                is_right = bug.test_encode();
+                if (!is_right)
+                    Console.WriteLine("encode error");
+                Console.WriteLine("finish CMD test");
+                Console.ReadKey();
+                return 0;
+
+            }
         }
     }
 }

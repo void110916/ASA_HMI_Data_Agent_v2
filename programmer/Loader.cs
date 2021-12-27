@@ -25,15 +25,16 @@ namespace programmer
         //string eep_file;
         public UInt16 go_app_delay;
         SerialPort port;
+        CMD cth;
         // 燒錄狀態
         public enum Stage : int
         {
             PREPARE = 0,
             FLASH_PROG = 1,
-            EEP_PROG = 2,
-            EXT_FLASH_PROG = 3,
-            EXT_TO_INT = 4,
-            END = 5
+            //EEP_PROG = 2,
+            //EXT_FLASH_PROG = 3,
+            //EXT_TO_INT = 4,
+            END = 2
         }
 
         Stage stage = Stage.PREPARE;
@@ -53,9 +54,7 @@ namespace programmer
             this.is_go_app = is_go_app;
             this.flash_file = flash_file;
             this.go_app_delay = go_app_delay;
-
-
-
+            this.cth = new CMD(serial);
 
         }
         public Loader(SerialPort serial)
@@ -196,13 +195,67 @@ namespace programmer
 
             this.protocol_version = Program.device_list[device_type]["protocol_version"];
             this.device_name = Program.device_list[device_type]["name"];
+        }
+        public async Task loading(IProgress<int> progress)
+        {
+            if (this.stage == Stage.FLASH_PROG)
+                await prog_loading(progress);
+            else if (this.stage == Stage.END)
+                await prog_end();
+        }
+        async Task prog_loading(IProgress<int> progress)
+        {
+            var address = this.flash_pages[this.flash_page_idx].address;
+            var data = this.flash_pages[this.flash_page_idx].data;
+            if (this.protocol_version == 1)
+            {
+                // protocol v1 will auto clear flash after command "chk_protocol"
+                this.cth.v1_prog_flash_wr(data);
+                Thread.Sleep(30);
+            }
+            else if (this.protocol_version == 2)
+            {
+                if (this.flash_page_idx == 0)
+                {
+                    if (this.device_type == 5)
+                    {
+                        // asa_m4_v1 takes longer chip erase time
+                        this.cth.v3_flash_erase_all();
+                    }
+                    else
+                        this.cth.v2_flash_erase_all();
+                }
+                this.cth.v2_flash_wr(address, data);
+            }
+            this.flash_page_idx++;
+            this.cur_step++;
+            if (this.flash_page_idx == this.flash_pages.Count)
+                this.stage = (Stage)((int)this.stage++);
 
+        }
+
+        async Task prog_end()
+        {
+            if (this.protocol_version == 1)
+                this.cth.v1_prog_end();
+            else if (this.protocol_version == 2)
+            {
+                if (this.is_go_app)
+                {
+                    this.cth.v2_prog_set_go_app_delay(this.go_app_delay);
+                    this.cth.v2_prog_end_and_go_app();
+                }
+                else
+                    this.cth.v2_prog_end();
+            }
+            this.cur_step++;
         }
     }
     public class CMD
     {
         SerialPort port;
-        readonly string HEADER = Encoding.ASCII.GetString(new byte[] { 0xfc, 0xfc, 0xfc });
+        protected Encoding encoder = Encoding.GetEncoding(437);
+        readonly byte[] HEADER = new byte[] { 0xfc, 0xfc, 0xfc };
         readonly byte TOCKEN = 0x01;
         public class COMMAND
         {
@@ -213,32 +266,54 @@ namespace programmer
                 this.command = command;
                 this.data = data;
             }
+            public override bool Equals(object obj)
+            {
+                if (obj == null || GetType() != obj.GetType())
+                {
+                    return false;
+                }
+                COMMAND p = (COMMAND)obj;
+                if (this.command != p.command)
+                    return false;
+
+                return this.data.SequenceEqual(p.data);
+            }
+        }
+        public CMD()
+        {
+
         }
         public CMD(SerialPort port)
         {
             this.port = port;
         }
+
         public bool chk_protocal(out int version)
         {
             version = 0;
-            put_packet(CommanderHeader.CHK_PROTOCOL, Encoding.ASCII.GetBytes("test"));
+            put_packet(CommanderHeader.CHK_PROTOCOL, encoder.GetBytes("test"));
             Thread.Sleep(10);
             var rep = get_packet();
 
             if (rep == null)
                 return false;
-            if (rep.command == CommanderHeader.ACK1 & rep.data.Equals(Encoding.ASCII.GetBytes("OK!!")))
+            if ((rep.command == CommanderHeader.ACK1) && (encoder.GetString(rep.data) == "OK!!"))
             {
                 version = 1;
                 return true;
             }
-            else if (rep.command == CommanderHeader.CHK_PROTOCOL & rep.data[0] == 0)
+            else if ((rep.command == CommanderHeader.CHK_PROTOCOL) && (rep.data[0] == 0))
             {
                 version = rep.data[1];
                 return true;
             }
             else
                 return false;
+        }
+        public bool v1_prog_flash_wr(byte[] data)
+        {
+            return this.put_packet(CommanderHeader.DATA, data);
+
         }
         public bool v2_prog_chk_device(out int version)
         {
@@ -254,36 +329,150 @@ namespace programmer
                 return false;
 
         }
-        void put_packet(CommanderHeader command, byte[] data)
+
+        public bool v2_flash_erase_all()
         {
-            this.port.Encoding = Encoding.ASCII;
-            this.port.DiscardInBuffer();
-            var pac = new List<byte>();
-            pac.Add((byte)command);
-            pac.AddRange(data);
-            this.port.Write(pac.ToArray(), 0, pac.Count);
+            this.put_packet(CommanderHeader.FLASH_EARSE_ALL, null);
+            var rep = this.get_packet();
+            if (rep.command == CommanderHeader.FLASH_EARSE_ALL && rep.data[0] == 0)
+                return true;
+            else
+                return false;
+        }
+
+        public bool v3_flash_erase_all()
+        {
+            this.put_packet(CommanderHeader.FLASH_EARSE_ALL, null);
+            Thread.Sleep(3000);
+            var rep = this.get_packet();
+            if (rep.command == CommanderHeader.FLASH_EARSE_ALL && rep.data[0] == 0)
+                return true;
+            else
+                return false;
+        }
+
+        public bool v2_flash_wr(uint page_addr, byte[] data)
+        {
+            var loadlist = new List<byte>(sizeof(uint) / sizeof(byte) + data.Length);
+            loadlist.AddRange(BitConverter.GetBytes(page_addr));
+            loadlist.AddRange(data);
+            var payload = loadlist.ToArray();
+            this.put_packet(CommanderHeader.FLASH_WRITE, payload);
+            var rep = this.get_packet();
+            if (rep.command == CommanderHeader.FLASH_WRITE && rep.data[0] == 0)
+                return true;
+            else
+                return false;
+        }
+
+        public bool v1_prog_end()
+        {
+            this.put_packet(CommanderHeader.DATA, new byte[] { });
+            var rep = get_packet();
+            if (rep.command == CommanderHeader.ACK2 && encoder.GetString(rep.data) == "OK!!")
+                return true;
+            else
+                return false;
+        }
+
+        public bool v2_prog_end()
+        {
+            this.put_packet(CommanderHeader.PROG_END, new byte[] { });
+            var rep = get_packet();
+            if (rep.command == CommanderHeader.PROG_END && rep.data[0] == 0)
+                return true;
+            else
+                return false;
+        }
+        public bool v2_prog_set_go_app_delay(UInt16 delay)
+        {
+            this.put_packet(CommanderHeader.PROG_SET_GO_APP_DELAY, new byte[] { });
+            var rep = get_packet();
+            if (rep.command == CommanderHeader.PROG_SET_GO_APP_DELAY && rep.data[0] == 0)
+                return true;
+            else
+                return false;
+        }
+        public bool v2_prog_end_and_go_app()
+        {
+            this.put_packet(CommanderHeader.PROG_END_AND_GO_APP, new byte[] { });
+            var rep = get_packet();
+            if (rep.command == CommanderHeader.PROG_END_AND_GO_APP && rep.data[0] == 0)
+                return true;
+            else
+                return false;
+        }
+
+        /// <summary>
+        /// 發送封包函式(polling)
+        /// </summary>
+        /// <param name="command">命令編號</param>
+        /// <param name="data">封包資料</param>
+        /// <returns></returns>
+        bool put_packet(CommanderHeader command, byte[] data)
+        {
+            if (this.port.IsOpen)
+            {
+                this.port.Encoding = encoder;
+                this.port.DiscardInBuffer();
+                var pac = encode(command, data);
+                this.port.Write(pac, 0, pac.Length);
+                return true;
+            }
+            else
+                return false;
+
         }
         COMMAND get_packet()
         {
+
+            var ch = port.ReadExisting();
+            var packet = decode(ch);
+            return packet;
+        }
+
+
+        protected byte[] encode(CommanderHeader command, byte[] data)
+        {
+            var pac = new List<byte>(data.Length + 8);
+            pac.AddRange(HEADER);
+            pac.Add((byte)command);
+            pac.Add(TOCKEN);
+            byte[] data_len = { (byte)(data.Length >> 8), (byte)(data.Length & 255) };
+            pac.Add(data_len[0]);
+            pac.Add(data_len[1]);
+            pac.AddRange(data);
+            byte chksum = (byte)(data.Sum(x => x) & 255);
+            pac.Add(chksum);
+            return pac.ToArray();
+        }
+
+        protected COMMAND decode(string ch)
+        {
+            var pac = encoder.GetBytes(ch);
             COMMAND packet = null;
             int pac_len = 0;
             CommanderHeader? command = null;
-            var ch = port.ReadExisting();
-            if (ch.Length == 0)
+            string head = ch.Substring(0, 3);
+            var pre_header = encoder.GetString(HEADER);
+            if (pac.Length == 0)
                 return packet;
-            else if (ch.Substring(0, 3) == HEADER)
+            else if (head == pre_header)
             {
-                command = (CommanderHeader)ch[3];
+                command = (CommanderHeader)pac[3];
             }
 
-            if (ch[4] != TOCKEN)
+            if (pac[4] != TOCKEN)
                 return null;
             else
             {
-                pac_len = (ch[5] >> 8) + ch[6];
-                byte[] data = Encoding.ASCII.GetBytes(ch.Substring(7, pac_len));
+                pac_len = (pac[5] << 8) + pac[6];
+
+                byte[] data = encoder.GetBytes(ch.Substring(7, pac_len));
                 var sum = data.Sum(x => x);
-                if (sum % 256 != ch[ch.Length - 1])
+
+
+                if ((sum & 255) != pac[pac.Length - 1])
                     return null;
                 else
                     packet = new COMMAND(command.Value, data);
