@@ -116,26 +116,26 @@ namespace programmer
                 var real = Ihex.cut_to_pages(input.ToList(), page_size).ToArray();
                 return predict.SequenceEqual(real);
             }
-            static int Main(string[] args)
-            {
-                bool is_true = new int[] { 1, 2, 3 }.SequenceEqual(new int[] { 1, 3, 2 });
-                is_true = test_ihex_parse_1();
-                is_true &= test_ihex_parse_2();
-                is_true &= test_ihex_parse_3();
-                if (!is_true)
-                    Console.WriteLine("parse error");
-                is_true = test_ihex_padding_1();
-                is_true &= test_ihex_padding_2();
-                if (!is_true)
-                    Console.WriteLine("padding error");
-                is_true = test_ihex_cut_1();
-                if (!is_true)
-                    Console.WriteLine("cut error");
-                Console.WriteLine("finish ihex test");
-                Console.ReadKey();
-                return 0;
+            //static int Main(string[] args)
+            //{
+            //    bool is_true = new int[] { 1, 2, 3 }.SequenceEqual(new int[] { 1, 3, 2 });
+            //    is_true = test_ihex_parse_1();
+            //    is_true &= test_ihex_parse_2();
+            //    is_true &= test_ihex_parse_3();
+            //    if (!is_true)
+            //        Console.WriteLine("parse error");
+            //    is_true = test_ihex_padding_1();
+            //    is_true &= test_ihex_padding_2();
+            //    if (!is_true)
+            //        Console.WriteLine("padding error");
+            //    is_true = test_ihex_cut_1();
+            //    if (!is_true)
+            //        Console.WriteLine("cut error");
+            //    Console.WriteLine("finish ihex test");
+            //    Console.ReadKey();
+            //    return 0;
 
-            }
+            //}
 
         }
 
@@ -160,20 +160,20 @@ namespace programmer
                 return predict.SequenceEqual(real);
             }
 
-            static int Main(string[] args)
-            {
-                CMDDebug bug = new CMDDebug();
-                var is_right = bug.test_decode();
-                if (!is_right)
-                    Console.WriteLine("decode error");
-                is_right = bug.test_encode();
-                if (!is_right)
-                    Console.WriteLine("encode error");
-                Console.WriteLine("finish CMD test");
-                Console.ReadKey();
-                return 0;
+            //static int Main(string[] args)
+            //{
+            //    CMDDebug bug = new CMDDebug();
+            //    var is_right = bug.test_decode();
+            //    if (!is_right)
+            //        Console.WriteLine("decode error");
+            //    is_right = bug.test_encode();
+            //    if (!is_right)
+            //        Console.WriteLine("encode error");
+            //    Console.WriteLine("finish CMD test");
+            //    Console.ReadKey();
+            //    return 0;
 
-            }
+            //}
         }
     }
 }

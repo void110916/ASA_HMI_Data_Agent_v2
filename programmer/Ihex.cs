@@ -38,6 +38,7 @@ namespace programmer
 
                 while ((line = await sr.ReadLineAsync()) != null)
                 {
+                    sr_idx++;
                     if (line.Length < 10)
                         throw new IhexIndexFormatError(filename);
                     if (line[0] != ':')
@@ -68,8 +69,8 @@ namespace programmer
                     }
                     else
                         data = new byte[0];
-
-                    progress.Report(sr_idx++ * 100 / sr_len);
+                    if((sr_idx&15)==1)  // Console更新太快會造成Terminal顯示錯誤
+                        progress.Report(sr_idx * 10 / sr_len);
                     if (content_type == 0)
                     {     // data
                         if (s_i == 0)

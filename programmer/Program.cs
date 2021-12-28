@@ -114,10 +114,12 @@ namespace programmer
                     var idx = 0;
                     var progress = new Progress<int>(prog =>
                     {
-                        Console.SetCursorPosition(0, Console.CursorTop - 1);
-                        Console.Write(new string(' ', Console.BufferWidth));
-                        Console.SetCursorPosition(0, Console.CursorTop - 1);
+                        var cursor_temp = Console.CursorTop;
+                        Console.SetCursorPosition(0, Console.WindowHeight-1);
+                        Console.Write(new string(' ', Console.WindowWidth-1));
+                        Console.SetCursorPosition(0, Console.WindowHeight-1);
                         Console.Write($"{prog,3}% {dynBar[idx++ % 4]}");
+                        Console.SetCursorPosition(0, cursor_temp);
                     });
                     await programming(parser, progress);
                     break;
@@ -156,7 +158,9 @@ namespace programmer
         }
         static async Task programming(Argparse args, IProgress<int> progress)
         {
-            SerialPort port = new SerialPort(args.port, 115200);
+            SerialPort port = new SerialPort(args.port, 38400,Parity.None,8,StopBits.One);
+            port.DtrEnable = true;
+            port.RtsEnable = true;
             try
             {
                 port.Open();

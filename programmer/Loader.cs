@@ -37,7 +37,7 @@ namespace programmer
             END = 2
         }
 
-        Stage stage = Stage.PREPARE;
+        List<Stage> stage;
         int totle_step;
         int cur_step;
         List<Section> flash_pages = new List<Section>();
@@ -79,19 +79,20 @@ namespace programmer
             if (this.is_go_app)
                 if (go_app_delay > UInt16.MaxValue)
                     throw new GoAppDelayValueError(this.go_app_delay);
-            await prepare_flash(progress);
-
-
             prepare_device();
+            await prepare_flash(progress);
+            progress.Report(10);
+
+            
 
             // stage
-            var stg_list = new List<Stage>();
+            this.stage = new List<Stage>();
             if (this.is_flash_prog)
             {
-                stg_list.Add(Stage.PREPARE);
+                this.stage.Add(Stage.FLASH_PROG);
                 this.totle_step += this.flash_pages.Count;
             }
-            stg_list.Add(Stage.END);
+            this.stage.Add(Stage.END);
             this.totle_step++;
 
             // prog time
@@ -114,6 +115,7 @@ namespace programmer
                     this.prog_time = flash_pages.Count * 0.5f + 0.23f + 3;
                     break;
             }
+            Console.Write($"預計燒錄時間: {this.prog_time} s");
 
         }
 
@@ -169,7 +171,7 @@ namespace programmer
             else if (res && version == 2)
             {
                 res = cmd.v2_prog_chk_device(out detected_device);
-                if (res)
+                if (!res)
                     throw new ComuError();
             }
             else
@@ -198,43 +200,49 @@ namespace programmer
         }
         public async Task loading(IProgress<int> progress)
         {
-            if (this.stage == Stage.FLASH_PROG)
-                await prog_loading(progress);
-            else if (this.stage == Stage.END)
-                await prog_end();
+            foreach (var st in this.stage)
+            {
+                if (st == Stage.FLASH_PROG)
+                    await Task.Run(() => prog_loading(progress));
+                else if (st == Stage.END)
+                    await Task.Run(() => prog_end(progress));
+            }
+
         }
-        async Task prog_loading(IProgress<int> progress)
+        void prog_loading(IProgress<int> progress)
         {
-            var address = this.flash_pages[this.flash_page_idx].address;
-            var data = this.flash_pages[this.flash_page_idx].data;
-            if (this.protocol_version == 1)
+            var flash_page_total = this.flash_pages.Count;
+            for (; this.flash_page_idx < flash_page_total; this.flash_page_idx++, this.cur_step++)
             {
-                // protocol v1 will auto clear flash after command "chk_protocol"
-                this.cth.v1_prog_flash_wr(data);
-                Thread.Sleep(30);
-            }
-            else if (this.protocol_version == 2)
-            {
-                if (this.flash_page_idx == 0)
+                var address = this.flash_pages[this.flash_page_idx].address;
+                var data = this.flash_pages[this.flash_page_idx].data;
+                if (this.protocol_version == 1)
                 {
-                    if (this.device_type == 5)
-                    {
-                        // asa_m4_v1 takes longer chip erase time
-                        this.cth.v3_flash_erase_all();
-                    }
-                    else
-                        this.cth.v2_flash_erase_all();
+                    // protocol v1 will auto clear flash after command "chk_protocol"
+                    this.cth.v1_prog_flash_wr(data);
+                    Thread.Sleep(30);
                 }
-                this.cth.v2_flash_wr(address, data);
+                else if (this.protocol_version == 2)
+                {
+                    if (this.flash_page_idx == 0)
+                    {
+                        if (this.device_type == 5)
+                        {
+                            // asa_m4_v1 takes longer chip erase time
+                            this.cth.v3_flash_erase_all();
+                        }
+                        else
+                            this.cth.v2_flash_erase_all();
+                    }
+                    this.cth.v2_flash_wr(address, data);
+                }
+                progress.Report(10 + this.flash_page_idx * 90 / flash_page_total);
             }
-            this.flash_page_idx++;
-            this.cur_step++;
-            if (this.flash_page_idx == this.flash_pages.Count)
-                this.stage = (Stage)((int)this.stage++);
+
 
         }
 
-        async Task prog_end()
+        void prog_end(IProgress<int> progress)
         {
             if (this.protocol_version == 1)
                 this.cth.v1_prog_end();
@@ -248,7 +256,7 @@ namespace programmer
                 else
                     this.cth.v2_prog_end();
             }
-            this.cur_step++;
+            progress.Report(100);
         }
     }
     public class CMD
@@ -286,13 +294,15 @@ namespace programmer
         public CMD(SerialPort port)
         {
             this.port = port;
+            this.port.Encoding = encoder;
+            this.port.DiscardInBuffer();
         }
 
         public bool chk_protocal(out int version)
         {
             version = 0;
             put_packet(CommanderHeader.CHK_PROTOCOL, encoder.GetBytes("test"));
-            Thread.Sleep(10);
+            //Thread.Sleep(500);
             var rep = get_packet();
 
             if (rep == null)
@@ -319,6 +329,7 @@ namespace programmer
         {
             version = 0;
             put_packet(CommanderHeader.PROG_CHK_DEVICE, new byte[] { });
+
             var rep = get_packet();
             if (rep.command == CommanderHeader.PROG_CHK_DEVICE && rep.data[0] == 0)
             {
@@ -332,7 +343,8 @@ namespace programmer
 
         public bool v2_flash_erase_all()
         {
-            this.put_packet(CommanderHeader.FLASH_EARSE_ALL, null);
+            this.put_packet(CommanderHeader.FLASH_EARSE_ALL, new byte[] { });
+            Thread.Sleep(2200);
             var rep = this.get_packet();
             if (rep.command == CommanderHeader.FLASH_EARSE_ALL && rep.data[0] == 0)
                 return true;
@@ -342,7 +354,7 @@ namespace programmer
 
         public bool v3_flash_erase_all()
         {
-            this.put_packet(CommanderHeader.FLASH_EARSE_ALL, null);
+            this.put_packet(CommanderHeader.FLASH_EARSE_ALL, new byte[] { });
             Thread.Sleep(3000);
             var rep = this.get_packet();
             if (rep.command == CommanderHeader.FLASH_EARSE_ALL && rep.data[0] == 0)
@@ -413,8 +425,8 @@ namespace programmer
         {
             if (this.port.IsOpen)
             {
-                this.port.Encoding = encoder;
-                this.port.DiscardInBuffer();
+                //this.port.DiscardInBuffer();
+                //this.port.DiscardOutBuffer();
                 var pac = encode(command, data);
                 this.port.Write(pac, 0, pac.Length);
                 return true;
@@ -425,7 +437,7 @@ namespace programmer
         }
         COMMAND get_packet()
         {
-
+            Thread.Sleep(15);
             var ch = port.ReadExisting();
             var packet = decode(ch);
             return packet;
@@ -450,20 +462,18 @@ namespace programmer
         protected COMMAND decode(string ch)
         {
             var pac = encoder.GetBytes(ch);
-            COMMAND packet = null;
+            COMMAND packet = new COMMAND(CommanderHeader.PROG_END, new byte[] { });
             int pac_len = 0;
             CommanderHeader? command = null;
-            string head = ch.Substring(0, 3);
-            var pre_header = encoder.GetString(HEADER);
             if (pac.Length == 0)
                 return packet;
-            else if (head == pre_header)
+            else if (ch.Substring(0, 3) == encoder.GetString(HEADER))
             {
                 command = (CommanderHeader)pac[3];
             }
 
             if (pac[4] != TOCKEN)
-                return null;
+                return packet;
             else
             {
                 pac_len = (pac[5] << 8) + pac[6];
@@ -473,7 +483,7 @@ namespace programmer
 
 
                 if ((sum & 255) != pac[pac.Length - 1])
-                    return null;
+                    return packet;
                 else
                     packet = new COMMAND(command.Value, data);
             }
