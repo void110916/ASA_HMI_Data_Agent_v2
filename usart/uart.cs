@@ -6,7 +6,7 @@ using System.Windows.Forms;
 
 namespace usart
 {
-    static class Program
+    static class uart
     {
         /// <summary>
         /// 應用程式的主要進入點。

@@ -71,7 +71,7 @@ namespace programmer
         /// </summary>
         public async Task prepare(IProgress<int> progress)
         {
-            if (this.device_type > programmer.device_list.Length)
+            if (this.device_type > Program.device_list.Length)
                 throw new DeviceTypeError(this.device_type.ToString());
             if (this.is_flash_prog)
                 if (!File.Exists(this.flash_file))
@@ -178,25 +178,25 @@ namespace programmer
                 throw new ComuError();
 
             // auto detect device
-            if (programmer.device_list[device_type]["protocol_version"] == 0)
+            if (Program.device_list[device_type]["protocol_version"] == 0)
                 this.device_type = detected_device;
 
             // check for protocol v1 (e.g. m128_v1, m128_v2)
-            else if (programmer.device_list[device_type]["protocol_version"] == 1)
+            else if (Program.device_list[device_type]["protocol_version"] == 1)
             {
                 if (this.device_type != 2 || this.device_type != 1)
                     throw new CheckDeviceError(this.device_type, detected_device);
             }
 
             // check for protocol v2 (e.g. m128_v3, m3_v1)
-            else if (programmer.device_list[device_type]["protocol_version"] == 2)
+            else if (Program.device_list[device_type]["protocol_version"] == 2)
             {
                 if (this.device_type != detected_device)
                     throw new CheckDeviceError(this.device_type, detected_device);
             }
 
-            this.protocol_version = programmer.device_list[device_type]["protocol_version"];
-            this.device_name = programmer.device_list[device_type]["name"];
+            this.protocol_version = Program.device_list[device_type]["protocol_version"];
+            this.device_name = Program.device_list[device_type]["name"];
         }
         public async Task loading(IProgress<int> progress)
         {

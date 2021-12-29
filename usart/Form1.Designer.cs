@@ -13,6 +13,9 @@
         /// <param name="disposing">如果應該處置受控資源則為 true，否則為 false。</param>
         protected override void Dispose(bool disposing)
         {
+            if (serialPort1.IsOpen)
+                serialPort1.Close();
+            serialPort1.Dispose();
             if (disposing && (components != null))
             {
                 components.Dispose();
@@ -53,7 +56,20 @@
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             this.tabProgram = new System.Windows.Forms.TabPage();
+            this.groupBox6 = new System.Windows.Forms.GroupBox();
+            this.progButton = new System.Windows.Forms.Button();
+            this.label9 = new System.Windows.Forms.Label();
+            this.button2 = new System.Windows.Forms.Button();
+            this.hexFile = new System.Windows.Forms.TextBox();
+            this.label5 = new System.Windows.Forms.Label();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
+            this.groupBox5 = new System.Windows.Forms.GroupBox();
+            this.device = new System.Windows.Forms.ComboBox();
+            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
+            this.label7 = new System.Windows.Forms.Label();
+            this.ProgPort = new System.Windows.Forms.ComboBox();
+            this.label8 = new System.Windows.Forms.Label();
             this.tabSetting = new System.Windows.Forms.TabPage();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
@@ -61,6 +77,7 @@
             this.RTerminal = new System.Windows.Forms.ComboBox();
             this.helpProvider1 = new System.Windows.Forms.HelpProvider();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.progMessage = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabTerminal.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -71,6 +88,8 @@
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.tabProgram.SuspendLayout();
+            this.groupBox6.SuspendLayout();
+            this.groupBox5.SuspendLayout();
             this.tabSetting.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.groupBox4.SuspendLayout();
@@ -248,6 +267,7 @@
             // 
             // tabControl1
             // 
+            this.tabControl1.AllowDrop = true;
             this.tabControl1.Controls.Add(this.tabTerminal);
             this.tabControl1.Controls.Add(this.tabProgram);
             this.tabControl1.Controls.Add(this.tabSetting);
@@ -260,6 +280,8 @@
             this.tabControl1.SelectedIndex = 0;
             this.tabControl1.Size = new System.Drawing.Size(920, 552);
             this.tabControl1.TabIndex = 11;
+            this.tabControl1.SelectedIndexChanged += new System.EventHandler(this.tabControl1_SelectedIndexChanged);
+            this.tabControl1.DragDrop += new System.Windows.Forms.DragEventHandler(this.tabControl1_DragDrop);
             // 
             // tabTerminal
             // 
@@ -368,7 +390,9 @@
             // 
             // tabProgram
             // 
-            this.tabProgram.Controls.Add(this.progressBar1);
+            this.tabProgram.AllowDrop = true;
+            this.tabProgram.Controls.Add(this.groupBox6);
+            this.tabProgram.Controls.Add(this.groupBox5);
             this.tabProgram.Location = new System.Drawing.Point(4, 25);
             this.tabProgram.Name = "tabProgram";
             this.tabProgram.Padding = new System.Windows.Forms.Padding(3);
@@ -376,14 +400,176 @@
             this.tabProgram.TabIndex = 2;
             this.tabProgram.Text = "Program";
             this.tabProgram.UseVisualStyleBackColor = true;
+            this.tabProgram.DragDrop += new System.Windows.Forms.DragEventHandler(this.tabControl1_DragDrop);
+            this.tabProgram.DragEnter += new System.Windows.Forms.DragEventHandler(this.tabProgram_DragEnter);
+            // 
+            // groupBox6
+            // 
+            this.groupBox6.Controls.Add(this.progMessage);
+            this.groupBox6.Controls.Add(this.progButton);
+            this.groupBox6.Controls.Add(this.label9);
+            this.groupBox6.Controls.Add(this.button2);
+            this.groupBox6.Controls.Add(this.hexFile);
+            this.groupBox6.Controls.Add(this.label5);
+            this.groupBox6.Controls.Add(this.progressBar1);
+            this.groupBox6.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.groupBox6.Location = new System.Drawing.Point(3, 136);
+            this.groupBox6.Name = "groupBox6";
+            this.groupBox6.Size = new System.Drawing.Size(906, 384);
+            this.groupBox6.TabIndex = 14;
+            this.groupBox6.TabStop = false;
+            this.groupBox6.Text = "programming usual application";
+            // 
+            // progButton
+            // 
+            this.progButton.Location = new System.Drawing.Point(65, 63);
+            this.progButton.Name = "progButton";
+            this.progButton.Size = new System.Drawing.Size(835, 40);
+            this.progButton.TabIndex = 5;
+            this.progButton.Text = "start programming";
+            this.progButton.UseVisualStyleBackColor = true;
+            this.progButton.Click += new System.EventHandler(this.progButtonClick);
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(4, 37);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(56, 16);
+            this.label9.TabIndex = 4;
+            this.label9.Text = "Hex file :";
+            // 
+            // button2
+            // 
+            this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.button2.Location = new System.Drawing.Point(817, 34);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(83, 23);
+            this.button2.TabIndex = 3;
+            this.button2.Text = "select file";
+            this.button2.UseVisualStyleBackColor = true;
+            // 
+            // hexFile
+            // 
+            this.hexFile.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.hexFile.Location = new System.Drawing.Point(65, 34);
+            this.hexFile.Name = "hexFile";
+            this.hexFile.Size = new System.Drawing.Size(746, 23);
+            this.hexFile.TabIndex = 2;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(27, 113);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(33, 16);
+            this.label5.TabIndex = 1;
+            this.label5.Text = "bar :";
+            this.label5.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
             // progressBar1
             // 
-            this.progressBar1.Location = new System.Drawing.Point(223, 367);
+            this.progressBar1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.progressBar1.Location = new System.Drawing.Point(65, 109);
             this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(494, 23);
+            this.progressBar1.Size = new System.Drawing.Size(835, 23);
             this.progressBar1.TabIndex = 0;
-            this.progressBar1.Value = 50;
+            // 
+            // groupBox5
+            // 
+            this.groupBox5.Controls.Add(this.device);
+            this.groupBox5.Controls.Add(this.textBox1);
+            this.groupBox5.Controls.Add(this.label6);
+            this.groupBox5.Controls.Add(this.label7);
+            this.groupBox5.Controls.Add(this.ProgPort);
+            this.groupBox5.Controls.Add(this.label8);
+            this.groupBox5.Dock = System.Windows.Forms.DockStyle.Top;
+            this.groupBox5.Location = new System.Drawing.Point(3, 3);
+            this.groupBox5.Margin = new System.Windows.Forms.Padding(2, 5, 2, 2);
+            this.groupBox5.Name = "groupBox5";
+            this.groupBox5.Padding = new System.Windows.Forms.Padding(3, 3, 3, 1);
+            this.groupBox5.Size = new System.Drawing.Size(906, 122);
+            this.groupBox5.TabIndex = 13;
+            this.groupBox5.TabStop = false;
+            this.groupBox5.Text = "Serial Port Setting";
+            // 
+            // device
+            // 
+            this.device.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.device.Font = new System.Drawing.Font("微軟正黑體", 9F);
+            this.device.FormattingEnabled = true;
+            this.device.Items.AddRange(new object[] {
+            "auto",
+            "asa_m128_v1",
+            "asa_m128_v2",
+            "asa_m128_v3",
+            "asa_m3_v1",
+            "asa_m4_v1"});
+            this.device.Location = new System.Drawing.Point(65, 56);
+            this.device.Margin = new System.Windows.Forms.Padding(2, 5, 20, 5);
+            this.device.Name = "device";
+            this.device.Size = new System.Drawing.Size(114, 24);
+            this.device.TabIndex = 11;
+            // 
+            // textBox1
+            // 
+            this.textBox1.Font = new System.Drawing.Font("微軟正黑體", 9.25F);
+            this.textBox1.Location = new System.Drawing.Point(65, 87);
+            this.textBox1.Margin = new System.Windows.Forms.Padding(2, 5, 2, 5);
+            this.textBox1.Name = "textBox1";
+            this.textBox1.Size = new System.Drawing.Size(90, 24);
+            this.textBox1.TabIndex = 5;
+            this.textBox1.Visible = false;
+            // 
+            // label6
+            // 
+            this.label6.Font = new System.Drawing.Font("微軟正黑體", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.label6.Location = new System.Drawing.Point(24, 27);
+            this.label6.Margin = new System.Windows.Forms.Padding(2, 8, 2, 8);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(37, 16);
+            this.label6.TabIndex = 1;
+            this.label6.Text = "Port :";
+            this.label6.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // label7
+            // 
+            this.label7.Font = new System.Drawing.Font("微軟正黑體", 9F);
+            this.label7.Location = new System.Drawing.Point(6, 91);
+            this.label7.Margin = new System.Windows.Forms.Padding(20, 8, 2, 8);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(55, 16);
+            this.label7.TabIndex = 4;
+            this.label7.Text = "DataBit :";
+            this.label7.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            this.label7.Visible = false;
+            // 
+            // ProgPort
+            // 
+            this.ProgPort.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.ProgPort.Font = new System.Drawing.Font("微軟正黑體", 9F);
+            this.ProgPort.FormattingEnabled = true;
+            this.ProgPort.Location = new System.Drawing.Point(65, 23);
+            this.ProgPort.Margin = new System.Windows.Forms.Padding(2, 5, 20, 5);
+            this.ProgPort.Name = "ProgPort";
+            this.ProgPort.Size = new System.Drawing.Size(114, 24);
+            this.ProgPort.TabIndex = 10;
+            this.ProgPort.DropDown += new System.EventHandler(this.ProgPort_DropDown);
+            this.ProgPort.DropDownClosed += new System.EventHandler(this.ProgPort_DropDownClosed);
+            // 
+            // label8
+            // 
+            this.label8.Font = new System.Drawing.Font("微軟正黑體", 9F);
+            this.label8.Location = new System.Drawing.Point(9, 59);
+            this.label8.Margin = new System.Windows.Forms.Padding(20, 8, 2, 8);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(52, 16);
+            this.label8.TabIndex = 2;
+            this.label8.Text = "Device :";
+            this.label8.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // tabSetting
             // 
@@ -397,7 +583,6 @@
             this.tabSetting.TabIndex = 1;
             this.tabSetting.Text = "Setting";
             this.tabSetting.UseVisualStyleBackColor = true;
-            this.tabSetting.Enter += new System.EventHandler(this.tabSetting_Enter);
             // 
             // pictureBox1
             // 
@@ -448,6 +633,14 @@
             this.RTerminal.TabIndex = 1;
             this.RTerminal.SelectedIndexChanged += new System.EventHandler(this.RTerminal_SelectedIndexChanged);
             // 
+            // progMessage
+            // 
+            this.progMessage.AutoSize = true;
+            this.progMessage.Location = new System.Drawing.Point(62, 149);
+            this.progMessage.Name = "progMessage";
+            this.progMessage.Size = new System.Drawing.Size(0, 16);
+            this.progMessage.TabIndex = 6;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
@@ -475,6 +668,10 @@
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             this.tabProgram.ResumeLayout(false);
+            this.groupBox6.ResumeLayout(false);
+            this.groupBox6.PerformLayout();
+            this.groupBox5.ResumeLayout(false);
+            this.groupBox5.PerformLayout();
             this.tabSetting.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.groupBox4.ResumeLayout(false);
@@ -516,6 +713,20 @@
         private System.Windows.Forms.HelpProvider helpProvider1;
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.ToolTip toolTip1;
+        private System.Windows.Forms.GroupBox groupBox5;
+        private System.Windows.Forms.ComboBox device;
+        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.ComboBox ProgPort;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.GroupBox groupBox6;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.TextBox hexFile;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Button progButton;
+        private System.Windows.Forms.Label progMessage;
     }
 }
 

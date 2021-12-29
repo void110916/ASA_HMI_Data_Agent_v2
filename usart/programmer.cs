@@ -7,7 +7,7 @@ using System.IO;
 using System.IO.Ports;
 using System.Management;
 using Microsoft.Win32;
-using Microsoft.CodeAnalysis;
+
 
 namespace programmer
 {
@@ -156,7 +156,7 @@ namespace programmer
 
 
         }
-        static async Task programming(Argparse args, IProgress<int> progress)
+        static async Task<int> programming(Argparse args, IProgress<int> progress)
         {
             SerialPort port = new SerialPort(args.port, 38400,Parity.None,8,StopBits.One);
             port.DtrEnable = true;
@@ -210,7 +210,8 @@ namespace programmer
 #endif
                 Environment.Exit(1);
             }
-
+            port.Close();
+            return 0;
         }
     }
     enum Work

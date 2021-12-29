@@ -11,6 +11,7 @@ using System.IO.Ports;
 using System.IO;
 using System.Threading;
 using System.Text.RegularExpressions;
+using programmer;
 namespace usart
 {
     public partial class Form1 : Form
@@ -18,10 +19,12 @@ namespace usart
         public Form1()
         {
             InitializeComponent();
+            // serialPort1.Encoding = Encoding.UTF8;
             string[] coms = portSearch();
+            // comboPort_DropDown(this, new EventArgs());
             foreach (string com in coms)
             {
-                if (portOn(com, 115200, 8))
+                if (portOn(com, 38400, 8))
                 {
                     break;
                 }
@@ -33,12 +36,15 @@ namespace usart
         private string[] portSearch()
         {
             comboPort.Items.Clear();
+            ProgPort.Items.Clear();
             comboPort.Enabled = true;
             string[] coms = SerialPort.GetPortNames();
             if (coms.Length != 0)
             {
                 comboPort.Items.AddRange(coms);
                 comboPort.SelectedItem = coms[0];
+                ProgPort.Items.AddRange(coms);
+                ProgPort.SelectedItem = coms[0];
             }
             return coms;
         }
@@ -51,6 +57,7 @@ namespace usart
                 serialPort1.PortName = portName;
                 serialPort1.BaudRate = baud;
                 serialPort1.DataBits = databit;
+                serialPort1.Encoding = Encoding.UTF8;
                 //Console.WriteLine(serialPort1.Encoding);
                 try
                 {
@@ -67,10 +74,13 @@ namespace usart
                 serialPort1.DiscardOutBuffer();
                 if (serialPort1.IsOpen)
                 {
+                    ProgPort.SelectedItem = portName;
                     comboPort.SelectedItem = portName;
+
                     COM.Text = "ON";
                     COM.ForeColor = Color.Green;
 
+                    ProgPort.Enabled = false;
                     comboPort.Enabled = false;
                     textBaud.Enabled = false;
                     textBit.Enabled = false;
@@ -85,10 +95,12 @@ namespace usart
             serialPort1.Close();
             if (!serialPort1.IsOpen)
             {
+                ProgPort.SelectedItem = portName;
                 comboPort.SelectedItem = portName;
                 COM.Text = "OFF";
                 COM.ForeColor = Color.Red;
 
+                ProgPort.Enabled = true;
                 comboPort.Enabled = true;
                 textBaud.Enabled = true;
                 textBit.Enabled = true;
@@ -97,11 +109,14 @@ namespace usart
             return false;
         }
 
+
         private void comboPort_DropDown(object sender, EventArgs e)
         {
-            portSearch();
-        }
 
+            portSearch();
+
+
+        }
 
         private void textBaud_KeyUp(object sender, KeyEventArgs e)
         {
@@ -332,19 +347,98 @@ namespace usart
 
         }
 
-        private void tabSetting_Enter(object sender, EventArgs e)
-        {
-            //RTerminal.SelectedIndex = 0;
-        }
 
         private void RTerminal_SelectedIndexChanged(object sender, EventArgs e)
         {
-
             groupBox1.Text = RTerminal.SelectedItem.ToString();
             textBinary.Text = "";
             pacSend.Visible = RTerminal.SelectedItem.ToString() == "ASAHMI";
         }
 
+        private void tabControl1_SelectedIndexChanged(object sender, EventArgs e)
+        {
 
+            if (tabControl1.SelectedIndex == 0)
+            {
+               serialPort1.DataReceived+= new System.IO.Ports.SerialDataReceivedEventHandler(this.serialPort1_DataReceived);
+                if (!serialPort1.IsOpen)
+                {
+                    serialPort1.Encoding = Encoding.UTF8;
+                    portOn((string)comboPort.SelectedItem, int.Parse(textBaud.Text), int.Parse(textBit.Text));
+                }
+
+                textBaud.Text = serialPort1.BaudRate.ToString();
+                textBit.Text = serialPort1.DataBits.ToString();
+                RTerminal.SelectedIndex = 0;
+            }
+            else if (tabControl1.SelectedIndex == 1)
+            {
+                serialPort1.DataReceived -= new System.IO.Ports.SerialDataReceivedEventHandler(this.serialPort1_DataReceived);
+                device.SelectedIndex = 0;
+                serialPort1.Close();
+                serialPort1.Encoding = CMD.encoder;
+            }
+        }
+
+        private void ProgPort_DropDown(object sender, EventArgs e)
+        {
+            var portname = portSearch();
+            ProgPort.Items.Clear();
+            ProgPort.Enabled = true;
+
+            if (portname.Length != 0)
+            {
+                ProgPort.Items.AddRange(portname);
+                ProgPort.SelectedItem = portname[0];
+            }
+        }
+
+
+        private void tabControl1_DragDrop(object sender, DragEventArgs e)
+        {
+            string[] file = (string[])e.Data.GetData(DataFormats.FileDrop);
+            if (file[0].EndsWith(".hex"))
+                hexFile.Text = file[0];
+            else
+                MessageBox.Show($"File {file} is not an ihex file.", "File Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+        private void tabProgram_DragEnter(object sender, DragEventArgs e)
+        {
+            e.Effect = DragDropEffects.Copy;
+        }
+
+        async private void progButtonClick(object sender, EventArgs e)
+        {
+            progMessage.Text = "";
+            portOn(ProgPort.SelectedItem.ToString(), int.Parse(textBaud.Text), int.Parse(textBit.Text));
+            if (serialPort1.IsOpen)
+            {
+                var loader = new Loader(serialPort1, device.SelectedIndex, true, flash_file: hexFile.Text);
+                var progress = new Progress<int>(percent => {; progressBar1.Value = percent; });
+                
+                try
+                {
+                    await loader.prepare(progress);
+                    await loader.loading(progress);
+                }
+                catch (Exception err)
+                {
+                    progMessage.Text = err.Message;
+                }
+            }
+            else
+            {
+                MessageBox.Show("Cannot communicate with device", "connect error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            portOff(ProgPort.SelectedItem.ToString());
+            progMessage.Text = "Done!";
+        }
+
+        private void ProgPort_DropDownClosed(object sender, EventArgs e)
+        {
+            serialPort1.PortName = ProgPort.SelectedItem.ToString();
+        }
     }
 }

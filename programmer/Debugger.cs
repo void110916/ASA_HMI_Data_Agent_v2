@@ -148,7 +148,7 @@ namespace programmer
             {
                 var raw = new byte[] { 0xfc, 0xfc, 0xfc, 0xfa, 0x01, 0x00, 0x04, (byte)'t', (byte)'e', (byte)'s', (byte)'t', 0xc0 };
                 var predict = new COMMAND(CommanderHeader.CHK_PROTOCOL, new byte[] { (byte)'t', (byte)'e', (byte)'s', (byte)'t' });
-                var real = base.decode(base.encoder.GetString(raw));
+                var real = base.decode(encoder.GetString(raw));
                 return predict.Equals(real);
             }
 
