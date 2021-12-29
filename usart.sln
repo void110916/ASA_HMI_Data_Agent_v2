@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30225.117
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "usart", "usart\usart.csproj", "{3217D36B-E4CB-407F-BDA3-4BBBD3C1B30A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASA_HMI_Data_Agent_v2", "usart\ASA_HMI_Data_Agent_v2.csproj", "{3217D36B-E4CB-407F-BDA3-4BBBD3C1B30A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "decode_test", "decode_test\decode_test.csproj", "{D7F59F4C-2839-4319-A95E-6B03EBB84950}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "programmer", "programmer\programmer.csproj", "{54295AB2-80AF-416C-935E-540997FE1560}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "asaloader_v2", "programmer\asaloader_v2.csproj", "{54295AB2-80AF-416C-935E-540997FE1560}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

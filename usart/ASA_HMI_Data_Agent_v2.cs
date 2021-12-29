@@ -14,9 +14,9 @@ using System.Text.RegularExpressions;
 using programmer;
 namespace usart
 {
-    public partial class Form1 : Form
+    public partial class ASA_HMI_Data_Agent_v2 : Form
     {
-        public Form1()
+        public ASA_HMI_Data_Agent_v2()
         {
             InitializeComponent();
             // serialPort1.Encoding = Encoding.UTF8;

@@ -1,6 +1,6 @@
 ﻿namespace usart
 {
-    partial class Form1
+    partial class ASA_HMI_Data_Agent_v2
     {
         /// <summary>
         /// 設計工具所需的變數。
@@ -32,7 +32,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ASA_HMI_Data_Agent_v2));
             this.serialPort1 = new System.IO.Ports.SerialPort(this.components);
             this.comboPort = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -57,6 +57,7 @@
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             this.tabProgram = new System.Windows.Forms.TabPage();
             this.groupBox6 = new System.Windows.Forms.GroupBox();
+            this.progMessage = new System.Windows.Forms.Label();
             this.progButton = new System.Windows.Forms.Button();
             this.label9 = new System.Windows.Forms.Label();
             this.button2 = new System.Windows.Forms.Button();
@@ -77,7 +78,6 @@
             this.RTerminal = new System.Windows.Forms.ComboBox();
             this.helpProvider1 = new System.Windows.Forms.HelpProvider();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.progMessage = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabTerminal.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -420,6 +420,14 @@
             this.groupBox6.TabStop = false;
             this.groupBox6.Text = "programming usual application";
             // 
+            // progMessage
+            // 
+            this.progMessage.AutoSize = true;
+            this.progMessage.Location = new System.Drawing.Point(62, 149);
+            this.progMessage.Name = "progMessage";
+            this.progMessage.Size = new System.Drawing.Size(0, 16);
+            this.progMessage.TabIndex = 6;
+            // 
             // progButton
             // 
             this.progButton.Location = new System.Drawing.Point(65, 63);
@@ -633,15 +641,7 @@
             this.RTerminal.TabIndex = 1;
             this.RTerminal.SelectedIndexChanged += new System.EventHandler(this.RTerminal_SelectedIndexChanged);
             // 
-            // progMessage
-            // 
-            this.progMessage.AutoSize = true;
-            this.progMessage.Location = new System.Drawing.Point(62, 149);
-            this.progMessage.Name = "progMessage";
-            this.progMessage.Size = new System.Drawing.Size(0, 16);
-            this.progMessage.TabIndex = 6;
-            // 
-            // Form1
+            // ASA_HMI_Data_Agent_v2
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -650,9 +650,9 @@
             this.Font = new System.Drawing.Font("微軟正黑體", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
             this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.MinimumSize = new System.Drawing.Size(745, 380);
-            this.Name = "Form1";
+            this.Name = "ASA_HMI_Data_Agent_v2";
             this.helpProvider1.SetShowHelp(this, true);
-            this.Text = "Agent";
+            this.Text = "ASA HMI Data Agent v2";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.tabControl1.ResumeLayout(false);
             this.tabTerminal.ResumeLayout(false);
