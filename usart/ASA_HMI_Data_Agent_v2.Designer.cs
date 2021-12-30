@@ -646,6 +646,7 @@
             // openFileDialog1
             // 
             this.openFileDialog1.FileName = "openFileDialog1";
+            this.openFileDialog1.Filter = "IHex檔案|*.hex";
             // 
             // ASA_HMI_Data_Agent_v2
             // 
