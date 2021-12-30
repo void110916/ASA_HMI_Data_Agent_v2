@@ -78,6 +78,7 @@
             this.RTerminal = new System.Windows.Forms.ComboBox();
             this.helpProvider1 = new System.Windows.Forms.HelpProvider();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.tabControl1.SuspendLayout();
             this.tabTerminal.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -457,6 +458,7 @@
             this.button2.TabIndex = 3;
             this.button2.Text = "select file";
             this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // hexFile
             // 
@@ -641,6 +643,10 @@
             this.RTerminal.TabIndex = 1;
             this.RTerminal.SelectedIndexChanged += new System.EventHandler(this.RTerminal_SelectedIndexChanged);
             // 
+            // openFileDialog1
+            // 
+            this.openFileDialog1.FileName = "openFileDialog1";
+            // 
             // ASA_HMI_Data_Agent_v2
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
@@ -727,6 +733,7 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Button progButton;
         private System.Windows.Forms.Label progMessage;
+        private System.Windows.Forms.OpenFileDialog openFileDialog1;
     }
 }
 

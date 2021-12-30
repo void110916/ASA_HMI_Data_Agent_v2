@@ -440,5 +440,13 @@ namespace usart
         {
             serialPort1.PortName = ProgPort.SelectedItem.ToString();
         }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                hexFile.Text = openFileDialog1.FileName;
+            }
+        }
     }
 }
