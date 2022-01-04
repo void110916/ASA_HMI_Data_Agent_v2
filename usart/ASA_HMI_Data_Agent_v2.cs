@@ -434,9 +434,9 @@ namespace usart
 
         private void selectButton_Click(object sender, EventArgs e)
         {
-            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            if (openIHexFileDialog1.ShowDialog() == DialogResult.OK)
             {
-                hexFile.Text = openFileDialog1.FileName;
+                hexFile.Text = openIHexFileDialog1.FileName;
             }
         }
         /// program tab end

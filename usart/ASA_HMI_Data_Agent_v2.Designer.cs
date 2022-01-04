@@ -78,7 +78,10 @@
             this.RTerminal = new System.Windows.Forms.ComboBox();
             this.helpProvider1 = new System.Windows.Forms.HelpProvider();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            this.openIHexFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            this.splitContainer2 = new System.Windows.Forms.SplitContainer();
+            this.splitContainer3 = new System.Windows.Forms.SplitContainer();
+            this.label10 = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabTerminal.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -94,6 +97,14 @@
             this.tabSetting.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.groupBox4.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
+            this.splitContainer2.Panel1.SuspendLayout();
+            this.splitContainer2.Panel2.SuspendLayout();
+            this.splitContainer2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).BeginInit();
+            this.splitContainer3.Panel1.SuspendLayout();
+            this.splitContainer3.Panel2.SuspendLayout();
+            this.splitContainer3.SuspendLayout();
             this.SuspendLayout();
             // 
             // serialPort1
@@ -276,7 +287,7 @@
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.Padding = new System.Drawing.Point(10, 3);
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(920, 552);
+            this.tabControl1.Size = new System.Drawing.Size(940, 552);
             this.tabControl1.TabIndex = 11;
             this.tabControl1.SelectedIndexChanged += new System.EventHandler(this.tabControl1_SelectedIndexChanged);
             this.tabControl1.DragDrop += new System.Windows.Forms.DragEventHandler(this.tabControl1_DragDrop);
@@ -389,12 +400,11 @@
             // tabProgram
             // 
             this.tabProgram.AllowDrop = true;
-            this.tabProgram.Controls.Add(this.groupBox6);
-            this.tabProgram.Controls.Add(this.groupBox5);
+            this.tabProgram.Controls.Add(this.splitContainer2);
             this.tabProgram.Location = new System.Drawing.Point(4, 25);
             this.tabProgram.Name = "tabProgram";
             this.tabProgram.Padding = new System.Windows.Forms.Padding(3);
-            this.tabProgram.Size = new System.Drawing.Size(912, 523);
+            this.tabProgram.Size = new System.Drawing.Size(932, 523);
             this.tabProgram.TabIndex = 2;
             this.tabProgram.Text = "Program";
             this.tabProgram.UseVisualStyleBackColor = true;
@@ -410,10 +420,10 @@
             this.groupBox6.Controls.Add(this.hexFile);
             this.groupBox6.Controls.Add(this.label5);
             this.groupBox6.Controls.Add(this.progressBar1);
-            this.groupBox6.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.groupBox6.Location = new System.Drawing.Point(3, 136);
+            this.groupBox6.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.groupBox6.Location = new System.Drawing.Point(0, 0);
             this.groupBox6.Name = "groupBox6";
-            this.groupBox6.Size = new System.Drawing.Size(906, 384);
+            this.groupBox6.Size = new System.Drawing.Size(512, 383);
             this.groupBox6.TabIndex = 14;
             this.groupBox6.TabStop = false;
             this.groupBox6.Text = "programming usual application";
@@ -428,9 +438,11 @@
             // 
             // progButton
             // 
+            this.progButton.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.progButton.Location = new System.Drawing.Point(65, 63);
             this.progButton.Name = "progButton";
-            this.progButton.Size = new System.Drawing.Size(835, 40);
+            this.progButton.Size = new System.Drawing.Size(441, 40);
             this.progButton.TabIndex = 5;
             this.progButton.Text = "start programming";
             this.progButton.UseVisualStyleBackColor = true;
@@ -447,9 +459,8 @@
             // 
             // button2
             // 
-            this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.button2.Location = new System.Drawing.Point(817, 34);
+            this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.button2.Location = new System.Drawing.Point(423, 34);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(83, 23);
             this.button2.TabIndex = 3;
@@ -463,7 +474,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.hexFile.Location = new System.Drawing.Point(65, 34);
             this.hexFile.Name = "hexFile";
-            this.hexFile.Size = new System.Drawing.Size(746, 23);
+            this.hexFile.Size = new System.Drawing.Size(352, 23);
             this.hexFile.TabIndex = 2;
             // 
             // label5
@@ -482,7 +493,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.progressBar1.Location = new System.Drawing.Point(65, 109);
             this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(835, 23);
+            this.progressBar1.Size = new System.Drawing.Size(441, 23);
             this.progressBar1.TabIndex = 0;
             // 
             // groupBox5
@@ -493,12 +504,12 @@
             this.groupBox5.Controls.Add(this.label7);
             this.groupBox5.Controls.Add(this.ProgPort);
             this.groupBox5.Controls.Add(this.label8);
-            this.groupBox5.Dock = System.Windows.Forms.DockStyle.Top;
-            this.groupBox5.Location = new System.Drawing.Point(3, 3);
+            this.groupBox5.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.groupBox5.Location = new System.Drawing.Point(0, 0);
             this.groupBox5.Margin = new System.Windows.Forms.Padding(2, 5, 2, 2);
             this.groupBox5.Name = "groupBox5";
             this.groupBox5.Padding = new System.Windows.Forms.Padding(3, 3, 3, 1);
-            this.groupBox5.Size = new System.Drawing.Size(906, 122);
+            this.groupBox5.Size = new System.Drawing.Size(512, 130);
             this.groupBox5.TabIndex = 13;
             this.groupBox5.TabStop = false;
             this.groupBox5.Text = "Serial Port Setting";
@@ -586,18 +597,19 @@
             this.tabSetting.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.tabSetting.Name = "tabSetting";
             this.tabSetting.Padding = new System.Windows.Forms.Padding(4, 5, 4, 5);
-            this.tabSetting.Size = new System.Drawing.Size(912, 523);
+            this.tabSetting.Size = new System.Drawing.Size(932, 523);
             this.tabSetting.TabIndex = 1;
             this.tabSetting.Text = "Setting";
             this.tabSetting.UseVisualStyleBackColor = true;
             // 
             // pictureBox1
             // 
+            this.pictureBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.pictureBox1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
             this.pictureBox1.Cursor = System.Windows.Forms.Cursors.Help;
             this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
             this.pictureBox1.InitialImage = null;
-            this.pictureBox1.Location = new System.Drawing.Point(882, 0);
+            this.pictureBox1.Location = new System.Drawing.Point(902, 0);
             this.pictureBox1.Margin = new System.Windows.Forms.Padding(0);
             this.pictureBox1.Name = "pictureBox1";
             this.helpProvider1.SetShowHelp(this.pictureBox1, true);
@@ -640,16 +652,61 @@
             this.RTerminal.TabIndex = 1;
             this.RTerminal.SelectedIndexChanged += new System.EventHandler(this.RTerminal_SelectedIndexChanged);
             // 
-            // openFileDialog1
+            // openIHexFileDialog1
             // 
-            this.openFileDialog1.FileName = "openFileDialog1";
-            this.openFileDialog1.Filter = "IHex檔案|*.hex";
+            this.openIHexFileDialog1.Filter = "IHex檔案|*.hex";
+            // 
+            // splitContainer2
+            // 
+            this.splitContainer2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer2.Location = new System.Drawing.Point(3, 3);
+            this.splitContainer2.Name = "splitContainer2";
+            // 
+            // splitContainer2.Panel1
+            // 
+            this.splitContainer2.Panel1.Controls.Add(this.splitContainer3);
+            // 
+            // splitContainer2.Panel2
+            // 
+            this.splitContainer2.Panel2.Controls.Add(this.label10);
+            this.splitContainer2.Size = new System.Drawing.Size(926, 517);
+            this.splitContainer2.SplitterDistance = 512;
+            this.splitContainer2.TabIndex = 15;
+            // 
+            // splitContainer3
+            // 
+            this.splitContainer3.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer3.Location = new System.Drawing.Point(0, 0);
+            this.splitContainer3.Name = "splitContainer3";
+            this.splitContainer3.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            // 
+            // splitContainer3.Panel1
+            // 
+            this.splitContainer3.Panel1.Controls.Add(this.groupBox5);
+            // 
+            // splitContainer3.Panel2
+            // 
+            this.splitContainer3.Panel2.Controls.Add(this.groupBox6);
+            this.splitContainer3.Size = new System.Drawing.Size(512, 517);
+            this.splitContainer3.SplitterDistance = 130;
+            this.splitContainer3.TabIndex = 0;
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Font = new System.Drawing.Font("微軟正黑體", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.label10.Location = new System.Drawing.Point(11, 12);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(280, 102);
+            this.label10.TabIndex = 0;
+            this.label10.Text = "使用說明:\r\n        1. 選取COM Port\r\n        2. 選擇燒錄檔\r\n            + 直接拖曳檔案至UI內\r\n       " +
+    "     + 點擊`select file`按鈕選擇\r\n        3. 點擊燒錄按鈕並等待出現燒錄完成之訊息";
             // 
             // ASA_HMI_Data_Agent_v2
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(920, 552);
+            this.ClientSize = new System.Drawing.Size(940, 552);
             this.Controls.Add(this.tabControl1);
             this.Font = new System.Drawing.Font("微軟正黑體", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -681,6 +738,15 @@
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.groupBox4.ResumeLayout(false);
             this.groupBox4.PerformLayout();
+            this.splitContainer2.Panel1.ResumeLayout(false);
+            this.splitContainer2.Panel2.ResumeLayout(false);
+            this.splitContainer2.Panel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).EndInit();
+            this.splitContainer2.ResumeLayout(false);
+            this.splitContainer3.Panel1.ResumeLayout(false);
+            this.splitContainer3.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).EndInit();
+            this.splitContainer3.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -732,7 +798,10 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Button progButton;
         private System.Windows.Forms.Label progMessage;
-        private System.Windows.Forms.OpenFileDialog openFileDialog1;
+        private System.Windows.Forms.OpenFileDialog openIHexFileDialog1;
+        private System.Windows.Forms.SplitContainer splitContainer2;
+        private System.Windows.Forms.SplitContainer splitContainer3;
+        private System.Windows.Forms.Label label10;
     }
 }
 
