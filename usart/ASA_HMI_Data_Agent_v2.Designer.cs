@@ -76,9 +76,8 @@
             this.groupBox4 = new System.Windows.Forms.GroupBox();
             this.label4 = new System.Windows.Forms.Label();
             this.RTerminal = new System.Windows.Forms.ComboBox();
-            this.helpProvider1 = new System.Windows.Forms.HelpProvider();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.openIHexFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            this.openIHexFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.splitContainer3 = new System.Windows.Forms.SplitContainer();
             this.label10 = new System.Windows.Forms.Label();
@@ -113,6 +112,7 @@
             this.serialPort1.DtrEnable = true;
             this.serialPort1.PortName = "COM3";
             this.serialPort1.RtsEnable = true;
+            this.serialPort1.PinChanged += new System.IO.Ports.SerialPinChangedEventHandler(this.serialPort1_PinChanged);
             this.serialPort1.DataReceived += new System.IO.Ports.SerialDataReceivedEventHandler(this.serialPort1_DataReceived);
             // 
             // comboPort
@@ -189,7 +189,7 @@
             this.Terminal.Name = "Terminal";
             this.Terminal.ReadOnly = true;
             this.Terminal.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.Terminal.Size = new System.Drawing.Size(508, 383);
+            this.Terminal.Size = new System.Drawing.Size(519, 383);
             this.Terminal.TabIndex = 6;
             // 
             // textBinary
@@ -203,14 +203,14 @@
             this.textBinary.Multiline = true;
             this.textBinary.Name = "textBinary";
             this.textBinary.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBinary.Size = new System.Drawing.Size(371, 385);
+            this.textBinary.Size = new System.Drawing.Size(380, 385);
             this.textBinary.TabIndex = 7;
             // 
             // terminalClear
             // 
             this.terminalClear.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.terminalClear.Font = new System.Drawing.Font("微軟正黑體", 9F);
-            this.terminalClear.Location = new System.Drawing.Point(439, 409);
+            this.terminalClear.Location = new System.Drawing.Point(450, 409);
             this.terminalClear.Margin = new System.Windows.Forms.Padding(10, 1, 1, 1);
             this.terminalClear.MinimumSize = new System.Drawing.Size(73, 24);
             this.terminalClear.Name = "terminalClear";
@@ -224,7 +224,7 @@
             // 
             this.TerminalEnter.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.TerminalEnter.Font = new System.Drawing.Font("微軟正黑體", 9F);
-            this.TerminalEnter.Location = new System.Drawing.Point(351, 409);
+            this.TerminalEnter.Location = new System.Drawing.Point(362, 409);
             this.TerminalEnter.Margin = new System.Windows.Forms.Padding(5, 1, 5, 1);
             this.TerminalEnter.MinimumSize = new System.Drawing.Size(73, 24);
             this.TerminalEnter.Name = "TerminalEnter";
@@ -243,7 +243,7 @@
             this.textWrite.Margin = new System.Windows.Forms.Padding(1, 1, 5, 1);
             this.textWrite.MinimumSize = new System.Drawing.Size(150, 24);
             this.textWrite.Name = "textWrite";
-            this.textWrite.Size = new System.Drawing.Size(337, 24);
+            this.textWrite.Size = new System.Drawing.Size(348, 24);
             this.textWrite.TabIndex = 0;
             this.textWrite.KeyUp += new System.Windows.Forms.KeyEventHandler(this.textWrite_KeyUp);
             // 
@@ -251,7 +251,7 @@
             // 
             this.binaryClear.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.binaryClear.Font = new System.Drawing.Font("微軟正黑體", 9F);
-            this.binaryClear.Location = new System.Drawing.Point(302, 408);
+            this.binaryClear.Location = new System.Drawing.Point(311, 408);
             this.binaryClear.Margin = new System.Windows.Forms.Padding(2);
             this.binaryClear.MinimumSize = new System.Drawing.Size(73, 24);
             this.binaryClear.Name = "binaryClear";
@@ -301,7 +301,7 @@
             this.tabTerminal.Location = new System.Drawing.Point(4, 25);
             this.tabTerminal.Margin = new System.Windows.Forms.Padding(0, 5, 0, 5);
             this.tabTerminal.Name = "tabTerminal";
-            this.tabTerminal.Size = new System.Drawing.Size(912, 523);
+            this.tabTerminal.Size = new System.Drawing.Size(932, 523);
             this.tabTerminal.TabIndex = 0;
             this.tabTerminal.Text = "Terminal";
             this.tabTerminal.UseVisualStyleBackColor = true;
@@ -321,8 +321,8 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.groupBox1);
-            this.splitContainer1.Size = new System.Drawing.Size(899, 443);
-            this.splitContainer1.SplitterDistance = 516;
+            this.splitContainer1.Size = new System.Drawing.Size(919, 443);
+            this.splitContainer1.SplitterDistance = 527;
             this.splitContainer1.TabIndex = 14;
             // 
             // groupBox3
@@ -335,7 +335,7 @@
             this.groupBox3.Location = new System.Drawing.Point(0, 0);
             this.groupBox3.Margin = new System.Windows.Forms.Padding(2);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(516, 443);
+            this.groupBox3.Size = new System.Drawing.Size(527, 443);
             this.groupBox3.TabIndex = 13;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Terminal";
@@ -350,7 +350,7 @@
             this.groupBox1.Location = new System.Drawing.Point(0, 0);
             this.groupBox1.Margin = new System.Windows.Forms.Padding(2);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(379, 443);
+            this.groupBox1.Size = new System.Drawing.Size(388, 443);
             this.groupBox1.TabIndex = 11;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "ASAHMI";
@@ -612,7 +612,6 @@
             this.pictureBox1.Location = new System.Drawing.Point(902, 0);
             this.pictureBox1.Margin = new System.Windows.Forms.Padding(0);
             this.pictureBox1.Name = "pictureBox1";
-            this.helpProvider1.SetShowHelp(this.pictureBox1, true);
             this.pictureBox1.Size = new System.Drawing.Size(30, 30);
             this.pictureBox1.TabIndex = 3;
             this.pictureBox1.TabStop = false;
@@ -625,7 +624,7 @@
             this.groupBox4.Margin = new System.Windows.Forms.Padding(8);
             this.groupBox4.Name = "groupBox4";
             this.groupBox4.Padding = new System.Windows.Forms.Padding(5);
-            this.groupBox4.Size = new System.Drawing.Size(367, 233);
+            this.groupBox4.Size = new System.Drawing.Size(240, 71);
             this.groupBox4.TabIndex = 2;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Terminal setting";
@@ -652,9 +651,9 @@
             this.RTerminal.TabIndex = 1;
             this.RTerminal.SelectedIndexChanged += new System.EventHandler(this.RTerminal_SelectedIndexChanged);
             // 
-            // openIHexFileDialog1
+            // openIHexFileDialog
             // 
-            this.openIHexFileDialog1.Filter = "IHex檔案|*.hex";
+            this.openIHexFileDialog.Filter = "IHex檔案|*.hex";
             // 
             // splitContainer2
             // 
@@ -713,7 +712,6 @@
             this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.MinimumSize = new System.Drawing.Size(745, 380);
             this.Name = "ASA_HMI_Data_Agent_v2";
-            this.helpProvider1.SetShowHelp(this, true);
             this.Text = "ASA HMI Data Agent v2";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.tabControl1.ResumeLayout(false);
@@ -781,7 +779,6 @@
         private System.Windows.Forms.TabPage tabProgram;
         private System.Windows.Forms.GroupBox groupBox4;
         private System.Windows.Forms.ProgressBar progressBar1;
-        private System.Windows.Forms.HelpProvider helpProvider1;
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.ToolTip toolTip1;
         private System.Windows.Forms.GroupBox groupBox5;
@@ -798,7 +795,7 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Button progButton;
         private System.Windows.Forms.Label progMessage;
-        private System.Windows.Forms.OpenFileDialog openIHexFileDialog1;
+        private System.Windows.Forms.OpenFileDialog openIHexFileDialog;
         private System.Windows.Forms.SplitContainer splitContainer2;
         private System.Windows.Forms.SplitContainer splitContainer3;
         private System.Windows.Forms.Label label10;

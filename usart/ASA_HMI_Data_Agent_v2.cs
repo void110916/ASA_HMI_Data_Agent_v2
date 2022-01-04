@@ -240,7 +240,7 @@ namespace usart
         {
             Regex rx = new Regex(@"~G[AMS],");  //檢查是否有HMI sync format封包
             Thread.Sleep(15);  //（毫秒）等待一定時間，確保資料的完整性 int len
-            if (!serialPort1.IsOpen)
+            if (!serialPort1.CDHolding)
             {
                 return;
             }
@@ -332,6 +332,12 @@ namespace usart
                 }
             }
         }
+        private void serialPort1_PinChanged(object sender, SerialPinChangedEventArgs e)
+        {
+            if (e.EventType == SerialPinChange.CDChanged)
+                if (!serialPort1.CDHolding)
+                    portOff(comboPort.SelectedItem.ToString());
+        }
         /// terminal tab end
 
         /// setting tab start
@@ -353,7 +359,6 @@ namespace usart
                     serialPort1.Encoding = Encoding.UTF8;
                     portOn((string)comboPort.SelectedItem, int.Parse(textBaud.Text), int.Parse(textBit.Text));
                 }
-
                 textBaud.Text = serialPort1.BaudRate.ToString();
                 textBit.Text = serialPort1.DataBits.ToString();
             }
@@ -362,7 +367,6 @@ namespace usart
                 portOff((string)comboPort.SelectedItem);
                 serialPort1.DataReceived -= new System.IO.Ports.SerialDataReceivedEventHandler(this.serialPort1_DataReceived);
                 device.SelectedIndex = 0;
-
                 serialPort1.Encoding = CMD.encoder;
             }
         }
@@ -434,9 +438,9 @@ namespace usart
 
         private void selectButton_Click(object sender, EventArgs e)
         {
-            if (openIHexFileDialog1.ShowDialog() == DialogResult.OK)
+            if (openIHexFileDialog.ShowDialog() == DialogResult.OK)
             {
-                hexFile.Text = openIHexFileDialog1.FileName;
+                hexFile.Text = openIHexFileDialog.FileName;
             }
         }
         /// program tab end
@@ -446,5 +450,7 @@ namespace usart
             if (serialPort1 != null)
                 serialPort1.Dispose();
         }
+
+        
     }
 }
