@@ -11,9 +11,12 @@ using System.IO.Ports;
 using System.IO;
 using System.Threading;
 using System.Text.RegularExpressions;
+using Microsoft.Win32.SafeHandles;
+using System.Runtime.InteropServices;
 using programmer;
 namespace usart
 {
+
     public partial class ASA_HMI_Data_Agent_v2 : Form
     {
         public ASA_HMI_Data_Agent_v2()
@@ -33,6 +36,8 @@ namespace usart
             textBit.Text = serialPort1.DataBits.ToString();
             RTerminal.SelectedIndex = 0;
         }
+
+        /// call function start
         private string[] portSearch()
         {
             comboPort.Items.Clear();
@@ -48,6 +53,7 @@ namespace usart
             }
             return coms;
         }
+
         private bool portOn(string portName, int baud, int databit)
         {
 
@@ -58,12 +64,13 @@ namespace usart
                 serialPort1.BaudRate = baud;
                 serialPort1.DataBits = databit;
                 serialPort1.Encoding = Encoding.UTF8;
-                //Console.WriteLine(serialPort1.Encoding);
+                serialPort1.WriteTimeout = 5000;
+                serialPort1.DtrEnable = true;
+                serialPort1.RtsEnable = true;
+
                 try
                 {
                     serialPort1.Open();
-                    //serialPort1.DiscardInBuffer();
-                    //serialPort1.DiscardOutBuffer();
                 }
                 catch
                 {
@@ -91,8 +98,17 @@ namespace usart
         }
         private bool portOff(string portName)
         {
-
-            serialPort1.Close();
+            if (serialPort1.IsOpen)
+            {
+                serialPort1.DiscardInBuffer();
+                serialPort1.DiscardOutBuffer();
+                try
+                {
+                    serialPort1.Close();
+                }
+                catch
+                { }
+            }
             if (!serialPort1.IsOpen)
             {
                 ProgPort.SelectedItem = portName;
@@ -109,13 +125,20 @@ namespace usart
             return false;
         }
 
+        enum right_terminal_state
+        {
+            ASAHMI = 0,
+            HEX = 1
+        }
+        ASADecode decode = new ASADecode();
+        ASAEncode encode = new ASAEncode();
+        /// call function end
 
+        /// terminal tab start
+        // terminal setting
         private void comboPort_DropDown(object sender, EventArgs e)
         {
-
             portSearch();
-
-
         }
 
         private void textBaud_KeyUp(object sender, KeyEventArgs e)
@@ -136,28 +159,6 @@ namespace usart
             }
         }
 
-        private void terminal_enter_Click(object sender, EventArgs e)
-        {
-            if (serialPort1.IsOpen)
-            {
-                serialPort1.Write(textWrite.Text);
-            }
-            Terminal.Text += "<<" + textWrite.Text + "\r\n";
-            textWrite.Clear();
-
-        }
-
-        private void termina_clear_Click(object sender, EventArgs e)
-        {
-            Terminal.Clear();
-            textWrite.Clear();
-        }
-
-        private void binaryClear_Click(object sender, EventArgs e)
-        {
-            textBinary.Clear();
-
-        }
         private void COM_Click(object sender, EventArgs e)
         {
             if (comboPort.SelectedItem != null)
@@ -172,6 +173,25 @@ namespace usart
                 }
             }
         }
+
+        // left terminal side 
+        private void terminal_enter_Click(object sender, EventArgs e)
+        {
+            if (serialPort1.IsOpen)
+            {
+                serialPort1.Write(textWrite.Text);
+            }
+            Terminal.Text += "<<" + textWrite.Text + "\r\n";
+            textWrite.Clear();
+
+        }
+
+        private void terminal_clear_Click(object sender, EventArgs e)
+        {
+            Terminal.Clear();
+            textWrite.Clear();
+        }
+
         private void textWrite_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
@@ -185,13 +205,37 @@ namespace usart
                 textWrite.Clear();
             }
         }
-        enum right_terminal_state
+        // right binary/HMI view
+        private void binaryClear_Click(object sender, EventArgs e)
         {
-            ASAHMI = 0,
-            HEX = 1
+            textBinary.Clear();
         }
-        ASADecode decode = new ASADecode();
-        ASAEncode encode = new ASAEncode();
+        private void pacSend_Click(object sender, EventArgs e)
+        {
+            var formats = encode.split(textBinary.Text);
+            if (formats.Length > 1)
+            {
+                var resault = MessageBox.Show("multi-format detected, do you want to send all at ones?", "HMI warning", MessageBoxButtons.YesNoCancel);
+                if (resault == DialogResult.Cancel)
+                    return;
+                else if (resault == DialogResult.No)
+                {
+                    var is_ready = encode.put(formats[0]);
+                    if (!is_ready)
+                    {
+                        MessageBox.Show("HMI format incorrect!!", "HMI warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+                }
+            }
+            var package = encode.get();
+            if (Terminal.Text.EndsWith(""))
+            {
+                serialPort1.Write("~ACK");
+            }
+            serialPort1.Write(package);
+        }
+        // serial received event    
         private void serialPort1_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             Regex rx = new Regex(@"~G[AMS],");  //檢查是否有HMI sync format封包
@@ -202,7 +246,6 @@ namespace usart
             }
             byte[] buffs;
             int len = serialPort1.BytesToRead;
-
             if (len != 0)
             {
                 buffs = new byte[len];
@@ -227,7 +270,6 @@ namespace usart
                         terminal_buffs.Add(terminal_buff);
                         i++;
                     }
-
                     if (decode.putEnable && rTerminalIndex == (int)right_terminal_state.ASAHMI)
                     {
                         string text = decode.get();
@@ -243,15 +285,12 @@ namespace usart
                         }
                     }
                 }
-
-
                 string receivedata = Encoding.UTF8.GetString(terminal_buffs.ToArray());
                 var mt = rx.Match(receivedata);
                 if (mt.Success)
                 {
                     serialPort1.WriteLine("~ACK");
                 }
-
                 if (Terminal.InvokeRequired)
                 {
                     Action updateMethod = new Action(() =>
@@ -274,11 +313,9 @@ namespace usart
                         Terminal.Text = Terminal.Text.Insert(idx + 1, "<< ~ACK\r\n");
                     }
                 }
-
                 if (rTerminalIndex == (int)right_terminal_state.HEX)
                 {
                     string s = "";
-
                     foreach (byte buff in buffs)
                     {
                         s += buff.ToString("X2") + " ";
@@ -294,73 +331,23 @@ namespace usart
                     }
                 }
             }
-
         }
+        /// terminal tab end
 
-        private void pacSend_Click(object sender, EventArgs e)
-        {
-            var formats = encode.split(textBinary.Text);
-            if (formats.Length > 1)
-            {
-                var resault = MessageBox.Show("multi-format detected, do you want to send all at ones?", "HMI warning", MessageBoxButtons.YesNoCancel);
-                if (resault == DialogResult.Cancel)
-                    return;
-                else if (resault == DialogResult.No)
-                {
-                    var is_ready = encode.put(formats[0]);
-                    if (!is_ready)
-                    {
-                        MessageBox.Show("HMI format incorrect!!", "HMI warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                        return;
-                    }
-                }
-
-            }
-            //var is_ready = encode.put(textBinary.Text);
-            //if (!is_ready)
-            //{
-            //    MessageBox.Show("HMI format incorrect!!", "HMI warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            //    //Terminal.Text += "( HMI format error!! )\r\n";
-            //    return;
-            //}
-            var package = encode.get();
-            if (Terminal.Text.EndsWith(""))
-            {
-                serialPort1.Write("~ACK");
-            }
-            serialPort1.Write(package);
-
-            //int[] a = new int[] { 0, 0, 0 };
-            ////int[] a = { 0, 0, 0 };
-            //var str=Console.ReadLine();
-            //var val = str.Split(' ');
-            //for (int i=0;i<val.Length;i++)
-            //{
-            //    a[i]=int.Parse(val[i]);
-            //}
-        }
-
-        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
-        {
-
-            serialPort1.Dispose();
-
-        }
-
-
+        /// setting tab start
         private void RTerminal_SelectedIndexChanged(object sender, EventArgs e)
         {
             groupBox1.Text = RTerminal.SelectedItem.ToString();
             textBinary.Text = "";
             pacSend.Visible = RTerminal.SelectedItem.ToString() == "ASAHMI";
         }
-
+        /// settting tab end
+        
         private void tabControl1_SelectedIndexChanged(object sender, EventArgs e)
         {
-
             if (tabControl1.SelectedIndex == 0)
             {
-               serialPort1.DataReceived+= new System.IO.Ports.SerialDataReceivedEventHandler(this.serialPort1_DataReceived);
+                serialPort1.DataReceived += new System.IO.Ports.SerialDataReceivedEventHandler(this.serialPort1_DataReceived);
                 if (!serialPort1.IsOpen)
                 {
                     serialPort1.Encoding = Encoding.UTF8;
@@ -369,17 +356,17 @@ namespace usart
 
                 textBaud.Text = serialPort1.BaudRate.ToString();
                 textBit.Text = serialPort1.DataBits.ToString();
-                RTerminal.SelectedIndex = 0;
             }
             else if (tabControl1.SelectedIndex == 1)
             {
+                portOff((string)comboPort.SelectedItem);
                 serialPort1.DataReceived -= new System.IO.Ports.SerialDataReceivedEventHandler(this.serialPort1_DataReceived);
                 device.SelectedIndex = 0;
-                serialPort1.Close();
+
                 serialPort1.Encoding = CMD.encoder;
             }
         }
-
+        /// program tab start
         private void ProgPort_DropDown(object sender, EventArgs e)
         {
             var portname = portSearch();
@@ -392,7 +379,6 @@ namespace usart
                 ProgPort.SelectedItem = portname[0];
             }
         }
-
 
         private void tabControl1_DragDrop(object sender, DragEventArgs e)
         {
@@ -411,12 +397,13 @@ namespace usart
         async private void progButtonClick(object sender, EventArgs e)
         {
             progMessage.Text = "";
-            portOn(ProgPort.SelectedItem.ToString(), int.Parse(textBaud.Text), int.Parse(textBit.Text));
-            if (serialPort1.IsOpen)
+            Loader loader;
+            if (!File.Exists(hexFile.Text))
+                return;
+            if (portOn(ProgPort.SelectedItem.ToString(), int.Parse(textBaud.Text), int.Parse(textBit.Text)))
             {
-                var loader = new Loader(serialPort1, device.SelectedIndex, true, flash_file: hexFile.Text);
-                var progress = new Progress<int>(percent => {; progressBar1.Value = percent; });
-                
+                loader = new Loader(serialPort1, device.SelectedIndex, true, flash_file: hexFile.Text);
+                var progress = new Progress<int>(percent => { progMessage.Text = loader.status.ToString(); progressBar1.Value = percent; });
                 try
                 {
                     await loader.prepare(progress);
@@ -433,20 +420,31 @@ namespace usart
                 return;
             }
             portOff(ProgPort.SelectedItem.ToString());
-            progMessage.Text = "Done!";
+            if (loader.status == Loader.Stage.END)
+                progMessage.Text = "Done!";
+            else
+                progMessage.Text = "Fail Programming";
         }
 
         private void ProgPort_DropDownClosed(object sender, EventArgs e)
         {
-            serialPort1.PortName = ProgPort.SelectedItem.ToString();
+            if (ProgPort.SelectedItem != null)
+                serialPort1.PortName = ProgPort.SelectedItem.ToString();
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void selectButton_Click(object sender, EventArgs e)
         {
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 hexFile.Text = openFileDialog1.FileName;
             }
+        }
+        /// program tab end
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (serialPort1 != null)
+                serialPort1.Dispose();
         }
     }
 }

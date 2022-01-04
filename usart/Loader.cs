@@ -29,14 +29,14 @@ namespace programmer
         // 燒錄狀態
         public enum Stage : int
         {
-            PREPARE = 0,
+            PREPARE_IHEX = 0,
             FLASH_PROG = 1,
             //EEP_PROG = 2,
             //EXT_FLASH_PROG = 3,
             //EXT_TO_INT = 4,
             END = 2
         }
-
+        public Stage status=Stage.PREPARE_IHEX;
         List<Stage> stage;
         int totle_step;
         int cur_step;
@@ -55,7 +55,7 @@ namespace programmer
             this.flash_file = flash_file;
             this.go_app_delay = go_app_delay;
             this.cth = new CMD(serial);
-
+            status = Stage.PREPARE_IHEX;
         }
         public Loader(SerialPort serial)
         {
@@ -202,6 +202,7 @@ namespace programmer
         {
             foreach (var st in this.stage)
             {
+                this.status = st;
                 if (st == Stage.FLASH_PROG)
                     await Task.Run(() => prog_loading(progress));
                 else if (st == Stage.END)
@@ -304,7 +305,7 @@ namespace programmer
         {
             version = 0;
             put_packet(CommanderHeader.CHK_PROTOCOL, encoder.GetBytes("test"));
-            //Thread.Sleep(500);
+            Thread.Sleep(500);
             var rep = get_packet();
 
             if (rep == null)

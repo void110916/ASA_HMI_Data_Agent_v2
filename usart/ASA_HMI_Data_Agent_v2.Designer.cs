@@ -13,8 +13,8 @@
         /// <param name="disposing">如果應該處置受控資源則為 true，否則為 false。</param>
         protected override void Dispose(bool disposing)
         {
-            if (serialPort1.IsOpen)
-                serialPort1.Close();
+            if (serialPort1 != null)
+                serialPort1.Dispose();
             serialPort1.Dispose();
             if (disposing && (components != null))
             {
@@ -194,9 +194,6 @@
             this.textBinary.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.textBinary.Size = new System.Drawing.Size(371, 385);
             this.textBinary.TabIndex = 7;
-            this.textBinary.Text = "i16_4 :\r\n    { 0, 1, 2, 3 }\r\n\r\ni16_1x4 :\r\n{\r\n    { 1, 2, 3 ,4 }\r\n}\r\n\r\ni16_4 , i16" +
-    "_4 :\r\n{\r\n    i16_4 :\r\n        { 2, 3,4, 5 }\r\n    i16_4 :\r\n        { 4, 5, 6, 7 }" +
-    "\r\n}\r\n\r\ni16_4 , i16_4 :\r\n{\r\n  \r\n}\r\n";
             // 
             // terminalClear
             // 
@@ -210,7 +207,7 @@
             this.terminalClear.TabIndex = 2;
             this.terminalClear.Text = "Clear";
             this.terminalClear.UseVisualStyleBackColor = true;
-            this.terminalClear.Click += new System.EventHandler(this.termina_clear_Click);
+            this.terminalClear.Click += new System.EventHandler(this.terminal_clear_Click);
             // 
             // TerminalEnter
             // 
@@ -458,7 +455,7 @@
             this.button2.TabIndex = 3;
             this.button2.Text = "select file";
             this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
+            this.button2.Click += new System.EventHandler(this.selectButton_Click);
             // 
             // hexFile
             // 
