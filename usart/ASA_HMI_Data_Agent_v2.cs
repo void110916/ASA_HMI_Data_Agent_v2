@@ -451,7 +451,7 @@ namespace usart
             if (file[0].EndsWith(".hex"))
                 hexFile.Text = file[0];
             else
-                MessageBox.Show($"File {file} is not an ihex file.", "File Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"File {file[0]} is not an ihex file.", "File Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         private void tabProgram_DragEnter(object sender, DragEventArgs e)
