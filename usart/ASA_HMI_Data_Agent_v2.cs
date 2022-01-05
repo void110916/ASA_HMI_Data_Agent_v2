@@ -94,7 +94,7 @@ namespace usart
                     textBaud.Enabled = false;
                     textBit.Enabled = false;
                     PortReceivable = true;
-                    
+
                     return true;
                 }
             }
@@ -179,8 +179,8 @@ namespace usart
             {
                 if (COM.Text == "OFF")
                 {
-                    portOn(comboPort.SelectedItem.ToString(), int.Parse(textBaud.Text), int.Parse(textBit.Text));
-                    DataReceived();
+                    if (portOn(comboPort.SelectedItem.ToString(), int.Parse(textBaud.Text), int.Parse(textBit.Text)))
+                        DataReceived();
                 }
                 else if (COM.Text == "ON")
                 {
@@ -296,11 +296,11 @@ namespace usart
                        raiseAppSerialDataEvent(received);
                    }
                    catch //(IOException exc)
-                    {
+                   {
                        portOff(serialPort1.PortName);
-                        //MessageBox.Show($"serial port error with:\r\n{exc.Message}", "serial error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        //handleAppSerialError(exc);
-                    }
+                       //MessageBox.Show($"serial port error with:\r\n{exc.Message}", "serial error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                       //handleAppSerialError(exc);
+                   }
                    kickoffRead();
                }, null);
             };
