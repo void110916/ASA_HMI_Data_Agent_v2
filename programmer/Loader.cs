@@ -220,7 +220,7 @@ namespace programmer
                 {
                     // protocol v1 will auto clear flash after command "chk_protocol"
                     this.cth.v1_prog_flash_wr(data);
-                    Thread.Sleep(30);
+                    Task.Delay(30).Wait();
                 }
                 else if (this.protocol_version == 2)
                 {
@@ -346,7 +346,7 @@ namespace programmer
         public bool v2_flash_erase_all()
         {
             this.put_packet(CommanderHeader.FLASH_EARSE_ALL, new byte[] { });
-            Thread.Sleep(2200);
+            Task.Delay(2200).Wait();
             var rep = this.get_packet();
             if (rep.command == CommanderHeader.FLASH_EARSE_ALL && rep.data[0] == 0)
                 return true;
@@ -357,7 +357,7 @@ namespace programmer
         public bool v3_flash_erase_all()
         {
             this.put_packet(CommanderHeader.FLASH_EARSE_ALL, new byte[] { });
-            Thread.Sleep(3000);
+            Task.Delay(3000).Wait();
             var rep = this.get_packet();
             if (rep.command == CommanderHeader.FLASH_EARSE_ALL && rep.data[0] == 0)
                 return true;
@@ -439,7 +439,7 @@ namespace programmer
         }
         COMMAND get_packet()
         {
-            Thread.Sleep(15);
+            Task.Delay(15).Wait();
             var ch = port.ReadExisting();
             var packet = decode(ch);
             return packet;

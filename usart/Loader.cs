@@ -200,17 +200,19 @@ namespace programmer
         }
         public async Task loading(IProgress<int> progress)
         {
+            if (!this.port.IsOpen)
+                this.port.Open();
             foreach (var st in this.stage)
             {
                 this.status = st;
                 if (st == Stage.FLASH_PROG)
-                    await Task.Run(() => prog_loading(progress));
+                    prog_loading(progress);
                 else if (st == Stage.END)
-                    await Task.Run(() => prog_end(progress));
+                    prog_end(progress);
             }
 
         }
-        void prog_loading(IProgress<int> progress)
+       void prog_loading(IProgress<int> progress)
         {
             var flash_page_total = this.flash_pages.Count;
             for (; this.flash_page_idx < flash_page_total; this.flash_page_idx++, this.cur_step++)
@@ -221,7 +223,7 @@ namespace programmer
                 {
                     // protocol v1 will auto clear flash after command "chk_protocol"
                     this.cth.v1_prog_flash_wr(data);
-                    Thread.Sleep(30);
+                   Task.Delay(30).Wait();
                 }
                 else if (this.protocol_version == 2)
                 {
@@ -239,11 +241,9 @@ namespace programmer
                 }
                 progress.Report(10 + this.flash_page_idx * 90 / flash_page_total);
             }
-
-
         }
 
-        void prog_end(IProgress<int> progress)
+       async Task prog_end(IProgress<int> progress)
         {
             if (this.protocol_version == 1)
                 this.cth.v1_prog_end();
@@ -305,7 +305,7 @@ namespace programmer
         {
             version = 0;
             put_packet(CommanderHeader.CHK_PROTOCOL, encoder.GetBytes("test"));
-            Thread.Sleep(500);
+            //Thread.Sleep(500);
             var rep = get_packet();
 
             if (rep == null)
@@ -347,7 +347,7 @@ namespace programmer
         public bool v2_flash_erase_all()
         {
             this.put_packet(CommanderHeader.FLASH_EARSE_ALL, new byte[] { });
-            Thread.Sleep(2200);
+            Task.Delay(2200).Wait();
             var rep = this.get_packet();
             if (rep.command == CommanderHeader.FLASH_EARSE_ALL && rep.data[0] == 0)
                 return true;
@@ -358,7 +358,7 @@ namespace programmer
         public bool v3_flash_erase_all()
         {
             this.put_packet(CommanderHeader.FLASH_EARSE_ALL, new byte[] { });
-            Thread.Sleep(3000);
+            Task.Delay(3000).Wait();
             var rep = this.get_packet();
             if (rep.command == CommanderHeader.FLASH_EARSE_ALL && rep.data[0] == 0)
                 return true;
@@ -431,7 +431,7 @@ namespace programmer
                 //this.port.DiscardInBuffer();
                 //this.port.DiscardOutBuffer();
                 var pac = encode(command, data);
-                this.port.Write(pac, 0, pac.Length);
+                this.port.BaseStream.Write(pac, 0, pac.Length);
                 return true;
             }
             else
@@ -440,9 +440,12 @@ namespace programmer
         }
         COMMAND get_packet()
         {
-            Thread.Sleep(15);
-            var ch = port.ReadExisting();
-            var packet = decode(ch);
+            Task.Delay(15).Wait();
+            var buffer = new byte[128];
+            var actualLength = port.BaseStream.Read(buffer,0,buffer.Length);
+            byte[] received = new byte[actualLength];
+            Buffer.BlockCopy(buffer, 0, received, 0, actualLength);
+            var packet = decode(received);
             return packet;
         }
 
@@ -462,9 +465,9 @@ namespace programmer
             return pac.ToArray();
         }
 
-        protected COMMAND decode(string ch)
+        protected COMMAND decode(byte[] pac)
         {
-            var pac = encoder.GetBytes(ch);
+            var ch = encoder.GetString(pac);
             COMMAND packet = new COMMAND(CommanderHeader.PROG_END, new byte[] { });
             int pac_len = 0;
             CommanderHeader? command = null;

@@ -93,6 +93,7 @@
     <Compile Include="ASA_HMI_Data_Agent_v2.Designer.cs">
       <DependentUpon>ASA_HMI_Data_Agent_v2.cs</DependentUpon>
     </Compile>
+    <Compile Include="COMPortEvent.cs" />
     <Compile Include="Ihex.cs" />
     <Compile Include="Loader.cs" />
     <Compile Include="programmer.cs" />

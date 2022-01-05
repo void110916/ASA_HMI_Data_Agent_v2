@@ -56,6 +56,15 @@
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             this.tabProgram = new System.Windows.Forms.TabPage();
+            this.splitContainer2 = new System.Windows.Forms.SplitContainer();
+            this.splitContainer3 = new System.Windows.Forms.SplitContainer();
+            this.groupBox5 = new System.Windows.Forms.GroupBox();
+            this.device = new System.Windows.Forms.ComboBox();
+            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
+            this.label7 = new System.Windows.Forms.Label();
+            this.ProgPort = new System.Windows.Forms.ComboBox();
+            this.label8 = new System.Windows.Forms.Label();
             this.groupBox6 = new System.Windows.Forms.GroupBox();
             this.progMessage = new System.Windows.Forms.Label();
             this.progButton = new System.Windows.Forms.Button();
@@ -64,13 +73,7 @@
             this.hexFile = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
-            this.groupBox5 = new System.Windows.Forms.GroupBox();
-            this.device = new System.Windows.Forms.ComboBox();
-            this.textBox1 = new System.Windows.Forms.TextBox();
-            this.label6 = new System.Windows.Forms.Label();
-            this.label7 = new System.Windows.Forms.Label();
-            this.ProgPort = new System.Windows.Forms.ComboBox();
-            this.label8 = new System.Windows.Forms.Label();
+            this.label10 = new System.Windows.Forms.Label();
             this.tabSetting = new System.Windows.Forms.TabPage();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
@@ -78,9 +81,6 @@
             this.RTerminal = new System.Windows.Forms.ComboBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.openIHexFileDialog = new System.Windows.Forms.OpenFileDialog();
-            this.splitContainer2 = new System.Windows.Forms.SplitContainer();
-            this.splitContainer3 = new System.Windows.Forms.SplitContainer();
-            this.label10 = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabTerminal.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -91,11 +91,6 @@
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.tabProgram.SuspendLayout();
-            this.groupBox6.SuspendLayout();
-            this.groupBox5.SuspendLayout();
-            this.tabSetting.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
-            this.groupBox4.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
             this.splitContainer2.Panel1.SuspendLayout();
             this.splitContainer2.Panel2.SuspendLayout();
@@ -104,6 +99,11 @@
             this.splitContainer3.Panel1.SuspendLayout();
             this.splitContainer3.Panel2.SuspendLayout();
             this.splitContainer3.SuspendLayout();
+            this.groupBox5.SuspendLayout();
+            this.groupBox6.SuspendLayout();
+            this.tabSetting.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            this.groupBox4.SuspendLayout();
             this.SuspendLayout();
             // 
             // serialPort1
@@ -112,8 +112,6 @@
             this.serialPort1.DtrEnable = true;
             this.serialPort1.PortName = "COM3";
             this.serialPort1.RtsEnable = true;
-            this.serialPort1.PinChanged += new System.IO.Ports.SerialPinChangedEventHandler(this.serialPort1_PinChanged);
-            this.serialPort1.DataReceived += new System.IO.Ports.SerialDataReceivedEventHandler(this.serialPort1_DataReceived);
             // 
             // comboPort
             // 
@@ -411,90 +409,40 @@
             this.tabProgram.DragDrop += new System.Windows.Forms.DragEventHandler(this.tabControl1_DragDrop);
             this.tabProgram.DragEnter += new System.Windows.Forms.DragEventHandler(this.tabProgram_DragEnter);
             // 
-            // groupBox6
+            // splitContainer2
             // 
-            this.groupBox6.Controls.Add(this.progMessage);
-            this.groupBox6.Controls.Add(this.progButton);
-            this.groupBox6.Controls.Add(this.label9);
-            this.groupBox6.Controls.Add(this.button2);
-            this.groupBox6.Controls.Add(this.hexFile);
-            this.groupBox6.Controls.Add(this.label5);
-            this.groupBox6.Controls.Add(this.progressBar1);
-            this.groupBox6.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.groupBox6.Location = new System.Drawing.Point(0, 0);
-            this.groupBox6.Name = "groupBox6";
-            this.groupBox6.Size = new System.Drawing.Size(512, 383);
-            this.groupBox6.TabIndex = 14;
-            this.groupBox6.TabStop = false;
-            this.groupBox6.Text = "programming usual application";
+            this.splitContainer2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer2.Location = new System.Drawing.Point(3, 3);
+            this.splitContainer2.Name = "splitContainer2";
             // 
-            // progMessage
+            // splitContainer2.Panel1
             // 
-            this.progMessage.AutoSize = true;
-            this.progMessage.Location = new System.Drawing.Point(62, 149);
-            this.progMessage.Name = "progMessage";
-            this.progMessage.Size = new System.Drawing.Size(0, 16);
-            this.progMessage.TabIndex = 6;
+            this.splitContainer2.Panel1.Controls.Add(this.splitContainer3);
             // 
-            // progButton
+            // splitContainer2.Panel2
             // 
-            this.progButton.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.progButton.Location = new System.Drawing.Point(65, 63);
-            this.progButton.Name = "progButton";
-            this.progButton.Size = new System.Drawing.Size(441, 40);
-            this.progButton.TabIndex = 5;
-            this.progButton.Text = "start programming";
-            this.progButton.UseVisualStyleBackColor = true;
-            this.progButton.Click += new System.EventHandler(this.progButtonClick);
+            this.splitContainer2.Panel2.Controls.Add(this.label10);
+            this.splitContainer2.Size = new System.Drawing.Size(926, 517);
+            this.splitContainer2.SplitterDistance = 512;
+            this.splitContainer2.TabIndex = 15;
             // 
-            // label9
+            // splitContainer3
             // 
-            this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(4, 37);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(56, 16);
-            this.label9.TabIndex = 4;
-            this.label9.Text = "Hex file :";
+            this.splitContainer3.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer3.Location = new System.Drawing.Point(0, 0);
+            this.splitContainer3.Name = "splitContainer3";
+            this.splitContainer3.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
-            // button2
+            // splitContainer3.Panel1
             // 
-            this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button2.Location = new System.Drawing.Point(423, 34);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(83, 23);
-            this.button2.TabIndex = 3;
-            this.button2.Text = "select file";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.selectButton_Click);
+            this.splitContainer3.Panel1.Controls.Add(this.groupBox5);
             // 
-            // hexFile
+            // splitContainer3.Panel2
             // 
-            this.hexFile.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.hexFile.Location = new System.Drawing.Point(65, 34);
-            this.hexFile.Name = "hexFile";
-            this.hexFile.Size = new System.Drawing.Size(352, 23);
-            this.hexFile.TabIndex = 2;
-            // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(27, 113);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(33, 16);
-            this.label5.TabIndex = 1;
-            this.label5.Text = "bar :";
-            this.label5.TextAlign = System.Drawing.ContentAlignment.TopRight;
-            // 
-            // progressBar1
-            // 
-            this.progressBar1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.progressBar1.Location = new System.Drawing.Point(65, 109);
-            this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(441, 23);
-            this.progressBar1.TabIndex = 0;
+            this.splitContainer3.Panel2.Controls.Add(this.groupBox6);
+            this.splitContainer3.Size = new System.Drawing.Size(512, 517);
+            this.splitContainer3.SplitterDistance = 130;
+            this.splitContainer3.TabIndex = 0;
             // 
             // groupBox5
             // 
@@ -589,6 +537,102 @@
             this.label8.Text = "Device :";
             this.label8.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
+            // groupBox6
+            // 
+            this.groupBox6.Controls.Add(this.progMessage);
+            this.groupBox6.Controls.Add(this.progButton);
+            this.groupBox6.Controls.Add(this.label9);
+            this.groupBox6.Controls.Add(this.button2);
+            this.groupBox6.Controls.Add(this.hexFile);
+            this.groupBox6.Controls.Add(this.label5);
+            this.groupBox6.Controls.Add(this.progressBar1);
+            this.groupBox6.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.groupBox6.Location = new System.Drawing.Point(0, 0);
+            this.groupBox6.Name = "groupBox6";
+            this.groupBox6.Size = new System.Drawing.Size(512, 383);
+            this.groupBox6.TabIndex = 14;
+            this.groupBox6.TabStop = false;
+            this.groupBox6.Text = "programming usual application";
+            // 
+            // progMessage
+            // 
+            this.progMessage.AutoSize = true;
+            this.progMessage.Location = new System.Drawing.Point(62, 149);
+            this.progMessage.Name = "progMessage";
+            this.progMessage.Size = new System.Drawing.Size(0, 16);
+            this.progMessage.TabIndex = 6;
+            // 
+            // progButton
+            // 
+            this.progButton.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.progButton.Location = new System.Drawing.Point(65, 63);
+            this.progButton.Name = "progButton";
+            this.progButton.Size = new System.Drawing.Size(441, 40);
+            this.progButton.TabIndex = 5;
+            this.progButton.Text = "start programming";
+            this.progButton.UseVisualStyleBackColor = true;
+            this.progButton.Click += new System.EventHandler(this.progButtonClick);
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(4, 37);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(56, 16);
+            this.label9.TabIndex = 4;
+            this.label9.Text = "Hex file :";
+            // 
+            // button2
+            // 
+            this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.button2.Location = new System.Drawing.Point(423, 34);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(83, 23);
+            this.button2.TabIndex = 3;
+            this.button2.Text = "select file";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.selectButton_Click);
+            // 
+            // hexFile
+            // 
+            this.hexFile.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.hexFile.Location = new System.Drawing.Point(65, 34);
+            this.hexFile.Name = "hexFile";
+            this.hexFile.Size = new System.Drawing.Size(352, 23);
+            this.hexFile.TabIndex = 2;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(27, 113);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(33, 16);
+            this.label5.TabIndex = 1;
+            this.label5.Text = "bar :";
+            this.label5.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // progressBar1
+            // 
+            this.progressBar1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.progressBar1.Location = new System.Drawing.Point(65, 109);
+            this.progressBar1.Name = "progressBar1";
+            this.progressBar1.Size = new System.Drawing.Size(441, 23);
+            this.progressBar1.TabIndex = 0;
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Font = new System.Drawing.Font("微軟正黑體", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.label10.Location = new System.Drawing.Point(11, 12);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(280, 102);
+            this.label10.TabIndex = 0;
+            this.label10.Text = "使用說明:\r\n        1. 選取COM Port\r\n        2. 選擇燒錄檔\r\n            + 直接拖曳檔案至UI內\r\n       " +
+    "     + 點擊`select file`按鈕選擇\r\n        3. 點擊燒錄按鈕並等待出現燒錄完成之訊息";
+            // 
             // tabSetting
             // 
             this.tabSetting.Controls.Add(this.pictureBox1);
@@ -655,52 +699,6 @@
             // 
             this.openIHexFileDialog.Filter = "IHex檔案|*.hex";
             // 
-            // splitContainer2
-            // 
-            this.splitContainer2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer2.Location = new System.Drawing.Point(3, 3);
-            this.splitContainer2.Name = "splitContainer2";
-            // 
-            // splitContainer2.Panel1
-            // 
-            this.splitContainer2.Panel1.Controls.Add(this.splitContainer3);
-            // 
-            // splitContainer2.Panel2
-            // 
-            this.splitContainer2.Panel2.Controls.Add(this.label10);
-            this.splitContainer2.Size = new System.Drawing.Size(926, 517);
-            this.splitContainer2.SplitterDistance = 512;
-            this.splitContainer2.TabIndex = 15;
-            // 
-            // splitContainer3
-            // 
-            this.splitContainer3.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer3.Location = new System.Drawing.Point(0, 0);
-            this.splitContainer3.Name = "splitContainer3";
-            this.splitContainer3.Orientation = System.Windows.Forms.Orientation.Horizontal;
-            // 
-            // splitContainer3.Panel1
-            // 
-            this.splitContainer3.Panel1.Controls.Add(this.groupBox5);
-            // 
-            // splitContainer3.Panel2
-            // 
-            this.splitContainer3.Panel2.Controls.Add(this.groupBox6);
-            this.splitContainer3.Size = new System.Drawing.Size(512, 517);
-            this.splitContainer3.SplitterDistance = 130;
-            this.splitContainer3.TabIndex = 0;
-            // 
-            // label10
-            // 
-            this.label10.AutoSize = true;
-            this.label10.Font = new System.Drawing.Font("微軟正黑體", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.label10.Location = new System.Drawing.Point(11, 12);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(280, 102);
-            this.label10.TabIndex = 0;
-            this.label10.Text = "使用說明:\r\n        1. 選取COM Port\r\n        2. 選擇燒錄檔\r\n            + 直接拖曳檔案至UI內\r\n       " +
-    "     + 點擊`select file`按鈕選擇\r\n        3. 點擊燒錄按鈕並等待出現燒錄完成之訊息";
-            // 
             // ASA_HMI_Data_Agent_v2
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
@@ -728,14 +726,6 @@
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             this.tabProgram.ResumeLayout(false);
-            this.groupBox6.ResumeLayout(false);
-            this.groupBox6.PerformLayout();
-            this.groupBox5.ResumeLayout(false);
-            this.groupBox5.PerformLayout();
-            this.tabSetting.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
-            this.groupBox4.ResumeLayout(false);
-            this.groupBox4.PerformLayout();
             this.splitContainer2.Panel1.ResumeLayout(false);
             this.splitContainer2.Panel2.ResumeLayout(false);
             this.splitContainer2.Panel2.PerformLayout();
@@ -745,6 +735,14 @@
             this.splitContainer3.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).EndInit();
             this.splitContainer3.ResumeLayout(false);
+            this.groupBox5.ResumeLayout(false);
+            this.groupBox5.PerformLayout();
+            this.groupBox6.ResumeLayout(false);
+            this.groupBox6.PerformLayout();
+            this.tabSetting.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            this.groupBox4.ResumeLayout(false);
+            this.groupBox4.PerformLayout();
             this.ResumeLayout(false);
 
         }

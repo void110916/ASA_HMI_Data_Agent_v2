@@ -19,6 +19,7 @@ namespace usart
 
     public partial class ASA_HMI_Data_Agent_v2 : Form
     {
+        bool PortReceivable = false;
         public ASA_HMI_Data_Agent_v2()
         {
             InitializeComponent();
@@ -31,6 +32,7 @@ namespace usart
                 {
                     break;
                 }
+                DataReceived();
             }
             textBaud.Text = serialPort1.BaudRate.ToString();
             textBit.Text = serialPort1.DataBits.ToString();
@@ -56,7 +58,6 @@ namespace usart
 
         private bool portOn(string portName, int baud, int databit)
         {
-
             string[] coms = portSearch();
             if (coms.Contains<string>(portName))
             {
@@ -64,7 +65,8 @@ namespace usart
                 serialPort1.BaudRate = baud;
                 serialPort1.DataBits = databit;
                 serialPort1.Encoding = Encoding.UTF8;
-                serialPort1.WriteTimeout = 5000;
+                serialPort1.WriteTimeout = 1000;
+                serialPort1.ReadTimeout = 1000;
                 serialPort1.DtrEnable = true;
                 serialPort1.RtsEnable = true;
 
@@ -91,6 +93,8 @@ namespace usart
                     comboPort.Enabled = false;
                     textBaud.Enabled = false;
                     textBit.Enabled = false;
+                    PortReceivable = true;
+                    
                     return true;
                 }
             }
@@ -100,15 +104,22 @@ namespace usart
         {
             if (serialPort1.IsOpen)
             {
-                serialPort1.DiscardInBuffer();
-                serialPort1.DiscardOutBuffer();
+
+                //serialPort1.DiscardOutBuffer();
+                PortReceivable = false;
+
+                Thread.Sleep(100);
                 try
                 {
+                    serialPort1.DtrEnable = false;
+                    serialPort1.RtsEnable = false;
+                    serialPort1.DiscardInBuffer();
                     serialPort1.Close();
                 }
                 catch
                 { }
             }
+
             if (!serialPort1.IsOpen)
             {
                 ProgPort.SelectedItem = portName;
@@ -120,6 +131,9 @@ namespace usart
                 comboPort.Enabled = true;
                 textBaud.Enabled = true;
                 textBit.Enabled = true;
+                //COM.Enabled = false;
+                //Thread.Sleep(500);
+                //COM.Enabled = true;
                 return true;
             }
             return false;
@@ -146,7 +160,7 @@ namespace usart
             if (e.KeyCode == Keys.Enter)
             {
                 serialPort1.BaudRate = int.Parse(textBaud.Text);
-                Terminal.Text += "(system) BaudRate is changed\n";
+                Terminal.Text += "(system) BaudRate is changed\r\n";
             }
         }
 
@@ -155,7 +169,7 @@ namespace usart
             if (e.KeyCode == Keys.Enter)
             {
                 serialPort1.DataBits = int.Parse(textBit.Text);
-                Terminal.Text += "(system) DataBit is changed\n";
+                Terminal.Text += "(system) DataBit is changed\r\n";
             }
         }
 
@@ -166,6 +180,7 @@ namespace usart
                 if (COM.Text == "OFF")
                 {
                     portOn(comboPort.SelectedItem.ToString(), int.Parse(textBaud.Text), int.Parse(textBit.Text));
+                    DataReceived();
                 }
                 else if (COM.Text == "ON")
                 {
@@ -179,7 +194,8 @@ namespace usart
         {
             if (serialPort1.IsOpen)
             {
-                serialPort1.Write(textWrite.Text);
+                var dat = Encoding.ASCII.GetBytes(textWrite.Text);
+                serialPort1.BaseStream.Write(dat, 0, dat.Length);
             }
             Terminal.Text += "<<" + textWrite.Text + "\r\n";
             textWrite.Clear();
@@ -198,7 +214,8 @@ namespace usart
             {
                 if (serialPort1.IsOpen)
                 {
-                    serialPort1.Write(textWrite.Text);
+                    var dat = Encoding.ASCII.GetBytes(textWrite.Text);
+                    serialPort1.BaseStream.Write(dat, 0, dat.Length);
                 }
                 Terminal.Text += "<<" + textWrite.Text + "\r\n";
 
@@ -229,82 +246,115 @@ namespace usart
                 }
             }
             var package = encode.get();
+            byte[] dat;
             if (Terminal.Text.EndsWith(""))
             {
-                serialPort1.Write("~ACK");
+                dat = Encoding.ASCII.GetBytes("~ACK");
+                serialPort1.BaseStream.Write(dat, 0, dat.Length);
             }
-            serialPort1.Write(package);
+            dat = Encoding.ASCII.GetBytes(package);
+            serialPort1.BaseStream.Write(dat, 0, dat.Length);
         }
         // serial received event    
-        private void serialPort1_DataReceived(object sender, SerialDataReceivedEventArgs e)
+
+        private void DataReceived()
+        {
+            const int blockLimit = 1024;
+            byte[] buffer = new byte[blockLimit];
+
+            Action kickoffRead = null;
+            kickoffRead = delegate
+            {
+                //Thread.Sleep(1);
+                //if ((!serialPort1.IsOpen) || (!PortReceivable)) return;
+                //try
+                //{
+
+                //    int actualLength = await serialPort1.BaseStream.ReadAsync(buffer, 0, buffer.Length);
+                //    byte[] received = new byte[actualLength];
+                //    Buffer.BlockCopy(buffer, 0, received, 0, actualLength);
+                //    raiseAppSerialDataEvent(received);
+                //}
+                //catch (IOException exc)
+                //{
+                //    portOff(serialPort1.PortName);
+                //    //MessageBox.Show($"serial port error with:\r\n{exc.Message}", "serial error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                //    //handleAppSerialError(exc);
+                //}
+                //kickoffRead();
+
+                serialPort1.BaseStream.BeginRead(buffer, 0, buffer.Length, delegate (IAsyncResult ar)
+               {
+                   Thread.Sleep(10);
+                   if ((!serialPort1.IsOpen) || (!PortReceivable)) return;
+
+                   try
+                   {
+                       int actualLength = serialPort1.BaseStream.EndRead(ar);
+                       byte[] received = new byte[actualLength];
+                       Buffer.BlockCopy(buffer, 0, received, 0, actualLength);
+                       raiseAppSerialDataEvent(received);
+                   }
+                   catch //(IOException exc)
+                    {
+                       portOff(serialPort1.PortName);
+                        //MessageBox.Show($"serial port error with:\r\n{exc.Message}", "serial error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        //handleAppSerialError(exc);
+                    }
+                   kickoffRead();
+               }, null);
+            };
+            //while (serialPort1.IsOpen&&PortReceivable)
+            kickoffRead();
+        }
+        private void raiseAppSerialDataEvent(byte[] data)
         {
             Regex rx = new Regex(@"~G[AMS],");  //檢查是否有HMI sync format封包
-            Thread.Sleep(15);  //（毫秒）等待一定時間，確保資料的完整性 int len
-            if (!serialPort1.CDHolding)
+            List<byte> terminal_buffs = new List<byte>(data.Length);
+            int i = 0;
+            int rTerminalIndex = 0;
+            if (RTerminal.InvokeRequired)
             {
-                return;
+                Action updateMethod = new Action(() => rTerminalIndex = RTerminal.SelectedIndex);
+                Terminal.BeginInvoke(updateMethod);
             }
-            byte[] buffs;
-            int len = serialPort1.BytesToRead;
-            if (len != 0)
+            else
             {
-                buffs = new byte[len];
-                serialPort1.Read(buffs, 0, len);
-                List<byte> terminal_buffs = new List<byte>(buffs.Length);
-                int i = 0;
-                int rTerminalIndex = 0;
-                if (RTerminal.InvokeRequired)
+                rTerminalIndex = RTerminal.SelectedIndex;
+            }
+            foreach (var buff in data)
+            {
+                var terminal_buff = decode.put(buff);
+                if (terminal_buff != 0)
                 {
-                    Action updateMethod = new Action(() => rTerminalIndex = RTerminal.SelectedIndex);
-                    Terminal.Invoke(updateMethod);
+                    terminal_buffs.Add(terminal_buff);
+                    i++;
                 }
-                else
+                if (decode.putEnable && rTerminalIndex == (int)right_terminal_state.ASAHMI)
                 {
-                    rTerminalIndex = RTerminal.SelectedIndex;
-                }
-                foreach (var buff in buffs)
-                {
-                    var terminal_buff = decode.put(buff);
-                    if (terminal_buff != 0)
-                    {
-                        terminal_buffs.Add(terminal_buff);
-                        i++;
-                    }
-                    if (decode.putEnable && rTerminalIndex == (int)right_terminal_state.ASAHMI)
-                    {
-                        string text = decode.get();
+                    string text = decode.get();
 
-                        if (textBinary.InvokeRequired)
-                        {
-                            Action updateMethod = new Action(() => textBinary.AppendText(text));
-                            textBinary.Invoke(updateMethod);
-                        }
-                        else
-                        {
-                            Terminal.AppendText(text);
-                        }
+                    if (textBinary.InvokeRequired)
+                    {
+                        Action updateMethod = new Action(() => textBinary.AppendText(text));
+                        textBinary.BeginInvoke(updateMethod);
+                    }
+                    else
+                    {
+                        Terminal.AppendText(text);
                     }
                 }
-                string receivedata = Encoding.UTF8.GetString(terminal_buffs.ToArray());
-                var mt = rx.Match(receivedata);
-                if (mt.Success)
-                {
-                    serialPort1.WriteLine("~ACK");
-                }
-                if (Terminal.InvokeRequired)
-                {
-                    Action updateMethod = new Action(() =>
-                    {
-                        Terminal.AppendText(receivedata);
-                        if (mt.Success)
-                        {
-                            var idx = Terminal.Text.LastIndexOf("\n");
-                            Terminal.Text = Terminal.Text.Insert(idx + 1, "<< ~ACK\r\n");
-                        }
-                    });
-                    Terminal.Invoke(updateMethod);
-                }
-                else
+            }
+            string receivedata = Encoding.UTF8.GetString(terminal_buffs.ToArray());
+            var mt = rx.Match(receivedata);
+            if (mt.Success)
+            {
+                var dat = Encoding.ASCII.GetBytes("~ACK\n");
+                serialPort1.BaseStream.Write(dat, 0, dat.Length);
+            }
+            if (Terminal.InvokeRequired)
+            {
+                Action updateMethod = new Action(() =>
                 {
                     Terminal.AppendText(receivedata);
                     if (mt.Success)
@@ -312,26 +362,37 @@ namespace usart
                         var idx = Terminal.Text.LastIndexOf("\n");
                         Terminal.Text = Terminal.Text.Insert(idx + 1, "<< ~ACK\r\n");
                     }
-                }
-                if (rTerminalIndex == (int)right_terminal_state.HEX)
+                });
+                Terminal.BeginInvoke(updateMethod);
+            }
+            else
+            {
+                Terminal.AppendText(receivedata);
+                if (mt.Success)
                 {
-                    string s = "";
-                    foreach (byte buff in buffs)
-                    {
-                        s += buff.ToString("X2") + " ";
-                    }
-                    if (textBinary.InvokeRequired)
-                    {
-                        Action updateMethod = new Action(() => textBinary.AppendText(s));
-                        textBinary.Invoke(updateMethod);
-                    }
-                    else
-                    {
-                        textBinary.AppendText(s);
-                    }
+                    var idx = Terminal.Text.LastIndexOf("\n");
+                    Terminal.Text = Terminal.Text.Insert(idx + 1, "<< ~ACK\r\n");
+                }
+            }
+            if (rTerminalIndex == (int)right_terminal_state.HEX)
+            {
+                string s = "";
+                foreach (byte buff in data)
+                {
+                    s += buff.ToString("X2") + " ";
+                }
+                if (textBinary.InvokeRequired)
+                {
+                    Action updateMethod = new Action(() => textBinary.AppendText(s));
+                    textBinary.BeginInvoke(updateMethod);
+                }
+                else
+                {
+                    textBinary.AppendText(s);
                 }
             }
         }
+
         private void serialPort1_PinChanged(object sender, SerialPinChangedEventArgs e)
         {
             if (e.EventType == SerialPinChange.CDChanged)
@@ -348,16 +409,16 @@ namespace usart
             pacSend.Visible = RTerminal.SelectedItem.ToString() == "ASAHMI";
         }
         /// settting tab end
-        
+
         private void tabControl1_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (tabControl1.SelectedIndex == 0)
             {
-                serialPort1.DataReceived += new System.IO.Ports.SerialDataReceivedEventHandler(this.serialPort1_DataReceived);
                 if (!serialPort1.IsOpen)
                 {
                     serialPort1.Encoding = Encoding.UTF8;
                     portOn((string)comboPort.SelectedItem, int.Parse(textBaud.Text), int.Parse(textBit.Text));
+                    DataReceived();
                 }
                 textBaud.Text = serialPort1.BaudRate.ToString();
                 textBit.Text = serialPort1.DataBits.ToString();
@@ -365,7 +426,7 @@ namespace usart
             else if (tabControl1.SelectedIndex == 1)
             {
                 portOff((string)comboPort.SelectedItem);
-                serialPort1.DataReceived -= new System.IO.Ports.SerialDataReceivedEventHandler(this.serialPort1_DataReceived);
+
                 device.SelectedIndex = 0;
                 serialPort1.Encoding = CMD.encoder;
             }
@@ -406,6 +467,7 @@ namespace usart
                 return;
             if (portOn(ProgPort.SelectedItem.ToString(), int.Parse(textBaud.Text), int.Parse(textBit.Text)))
             {
+
                 loader = new Loader(serialPort1, device.SelectedIndex, true, flash_file: hexFile.Text);
                 var progress = new Progress<int>(percent => { progMessage.Text = loader.status.ToString(); progressBar1.Value = percent; });
                 try
@@ -451,6 +513,6 @@ namespace usart
                 serialPort1.Dispose();
         }
 
-        
+
     }
 }
