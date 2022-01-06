@@ -26,14 +26,14 @@ namespace usart
             // serialPort1.Encoding = Encoding.UTF8;
             string[] coms = portSearch();
             // comboPort_DropDown(this, new EventArgs());
-            foreach (string com in coms)
-            {
-                if (portOn(com, 38400, 8))
-                {
-                    break;
-                }
-                DataReceived();
-            }
+            //foreach (string com in coms)
+            //{
+            //    if (portOn(com, 38400, 8))
+            //    {
+            //        break;
+            //    }
+            //    DataReceived();
+            //}
             textBaud.Text = serialPort1.BaudRate.ToString();
             textBit.Text = serialPort1.DataBits.ToString();
             RTerminal.SelectedIndex = 0;
